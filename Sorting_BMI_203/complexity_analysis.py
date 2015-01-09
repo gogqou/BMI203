@@ -14,6 +14,42 @@ import quickSort
 from numpy.polynomial import polynomial as P
 import math
 from scipy.optimize import curve_fit
+
+def curvefit_choice(data, fitfunc):
+    xdata=data[:,0]
+    ydata=data[:,1]
+    x = np.array(xdata)
+    y = np.array(ydata)
+    if fitfunc is 'log':
+        
+        def func(x,a):
+            return a*x*np.log(x)
+        popt, pcov = curve_fit(func, x, y)
+        print popt
+        print pcov
+        xx = np.linspace(100,1000,1000)
+        yy = func(xx, *popt)
+        plot(xdata,ydata, 'ko')
+        plot(xx,yy)
+        show()
+    elif fitfunc is 'polynomial':
+        
+    
+        coef,stats = P.polyfit(xdata,ydata,deg=4, full=True)
+        print coef
+        print stats
+        coef,stats = P.polyfit(xdata,ydata,deg=3, full=True)
+        print coef
+        print stats
+        coef,stats = P.polyfit(xdata,ydata,deg=2, full=True)
+        print coef
+        print stats
+        coef,stats = P.polyfit(xdata,ydata,deg=1, full=True)
+        print coef
+        print stats
+    else: 
+        print 'unexpected function name for fit, try polynomial or log'
+    return 1
 def main():
     complex_array= np.zeros((10000,2)) #allocate space for the array of n, and time to sort array with n elements
     #print complex_array
@@ -31,32 +67,7 @@ def main():
     print complex_array
     xdata=complex_array[:,0]
     ydata=complex_array[:,1]
-    x = np.array(xdata)
-    y = np.array(ydata)
-    def func(x,a):
-        return a*x*np.log(x)
-    popt, pcov = curve_fit(func, x, y)
-    print popt
-    print pcov
-    xx = np.linspace(100,1000,1000)
-    yy = func(xx, *popt)
-    plot(xdata,ydata, 'ko')
-    plot(xx,yy)
-    show()
-    '''
-    coef,stats = P.polyfit(xdata,ydata,deg=4, full=True)
-    print coef
-    print stats
-    coef,stats = P.polyfit(xdata,ydata,deg=3, full=True)
-    print coef
-    print stats
-    coef,stats = P.polyfit(xdata,ydata,deg=2, full=True)
-    print coef
-    print stats
-    coef,stats = P.polyfit(xdata,ydata,deg=1, full=True)
-    print coef
-    print stats
-    '''
+    curvefit_choice(complex_array, 'log')
     return complex_array
 if __name__ == '__main__':
     main()
