@@ -14,6 +14,7 @@ import quickSort
 from numpy.polynomial import polynomial as P
 import math
 from scipy.optimize import curve_fit
+from pylab import *
 
 def curvefit_choice(data, fitfunc):
     xdata=data[:,0]
@@ -31,7 +32,7 @@ def curvefit_choice(data, fitfunc):
         yy = func(xx, *popt)
         plot(xdata,ydata, 'ko')
         plot(xx,yy)
-        show()
+        savefig('log_fit_quicksort.png')
     elif fitfunc is 'polynomial':
         
     
