@@ -68,11 +68,4 @@ def partition(array, start, end, pivot_randIndex, assign, cond):
     assign=assign+1 
     return left, assign, cond
 
-def main():
-    array=randArray.randArray(100,20)
-    print array
-    sorted_array = quickSort(array)
-    print sorted_array
-if __name__ == '__main__':
-    main()
     
