@@ -44,7 +44,7 @@ def curvefit_choice(data, fitfunc):
         pylab.ylabel('Runtime (s)')
         pylab.xlabel('Array Size')
         pylab.savefig('log_fit_quicksort.png')
-        
+        pylab.plt.clf()
         
     elif fitfunc is 'polynomial':
         def func(x,a,b,c):
