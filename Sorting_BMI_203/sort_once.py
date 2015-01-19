@@ -4,6 +4,12 @@ Created on Jan 19, 2015
 @author: gogqou
 
 runs code once to show functionality
+
+inputs: 1 or 2 (to indicate bubble, or quickSort, respectively)
+
+size of random array (100 = 100 individual entries to be sorted)
+
+range of random array values (1000 means array entries can range from 1 to 1000)
 '''
 import sys
 import randArray
