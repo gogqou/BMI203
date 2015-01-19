@@ -2,6 +2,12 @@
 Created on Jan 7, 2015
 
 @author: gogqou
+
+Run sort algorithms multiple times for arrays of multiple sizes to allow analysis of algorithm complexity
+
+Fits output of array size n vs. time required to run and polynomial or log curve fits
+
+Then plots both raw data and fitted curve data 
 '''
 import sys
 import bubbleSort

@@ -22,7 +22,7 @@ def quickSort(array):
     cond = 0
     start_time=datetime.now()
     [array, assign_count, cond_count]=quickSort_implement (array, 0, len(array)-1, assign, cond)    
-    print assign_count, cond_count
+    #print assign_count, cond_count
     runTime = datetime.now()-start_time
     runTime = runTime.total_seconds()
     return array, runTime, assign_count, cond_count
@@ -30,9 +30,9 @@ def quickSort(array):
 def quickSort_implement(array,startIndex,endIndex, assign, cond):
     if startIndex < endIndex:
         pivot_randIndex = random.randint(startIndex, endIndex)
-        print pivot_randIndex, array[pivot_randIndex]
+        #print pivot_randIndex, array[pivot_randIndex]
         [pivot_sortedIndex, assign, cond] = partition(array, startIndex, endIndex, pivot_randIndex, assign, cond)  
-        print pivot_sortedIndex, array[pivot_sortedIndex]
+        #print pivot_sortedIndex, array[pivot_sortedIndex]
         [array1, assign, cond] = quickSort_implement(array, startIndex, pivot_sortedIndex-1, assign, cond)
         [array2, assign, cond] = quickSort_implement(array, pivot_sortedIndex+1, endIndex, assign, cond)
     
