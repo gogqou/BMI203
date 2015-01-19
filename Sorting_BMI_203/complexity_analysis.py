@@ -14,13 +14,12 @@ import bubbleSort
 import randArray
 import numpy as np
 import time
-from pylab import plot, show, ylim, yticks
 from datetime import datetime
 import quickSort
 from numpy.polynomial import polynomial as P
 import math
 from scipy.optimize import curve_fit
-from pylab import *
+import pylab
 
 def curvefit_choice(data, fitfunc):
     #curve fit based on whether expected is log or polynomial time
@@ -39,9 +38,12 @@ def curvefit_choice(data, fitfunc):
         #print pcov
         xx = np.linspace(100,1000,1000)
         yy = func(xx, *popt)
-        plot(xdata,ydata, 'ko')
-        plot(xx,yy)
-        savefig('log_fit_quicksort.png')
+        pylab.plot(xdata,ydata, 'ko', label = 'quickSort')
+        pylab.plot(xx,yy, label = 'axlogx() log fit')
+        pylab.legend()
+        pylab.ylabel('Runtime (s)')
+        pylab.xlabel('Array Size')
+        pylab.savefig('log_fit_quicksort.png')
         
         
     elif fitfunc is 'polynomial':
@@ -52,11 +54,13 @@ def curvefit_choice(data, fitfunc):
         xx = np.linspace(100,1000,1000)
         yy = func(xx, *popt)
         
-        plot(xdata,ydata, 'ko', label = 'bubbleSort')
-        plot(xx,yy, label='ax^2 + bx + c polynomial fit')
-        legend()
-        savefig('polyfit_bubbleSort.png')
-        plt.clf()
+        pylab.plot(xdata,ydata, 'ko', label = 'bubbleSort')
+        pylab.plot(xx,yy, label='ax^2 + bx + c polynomial fit')
+        pylab.legend()
+        pylab.ylabel('Runtime (s)')
+        pylab.xlabel('Array Size')
+        pylab.savefig('polyfit_bubbleSort.png')
+        pylab.plt.clf()
     else: 
         print 'unexpected function name for fit, try polynomial or log'
     return 1
@@ -66,10 +70,12 @@ def graph(array, name):
     
     array_x = array[:,0]
     array_y = array[:,1]
-    plot(array_x,array_y, 'o', label = name)
+    pylab.plot(array_x,array_y, 'o', label = name)
     print array_y
-    legend()
-    savefig(name + '.png')
+    pylab.ylabel('Count')
+    pylab.xlabel('Array Size')
+    pylab.legend()
+    pylab.savefig(name + '.png')
     
     
 def main():
