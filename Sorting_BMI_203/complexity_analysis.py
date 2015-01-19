@@ -32,8 +32,8 @@ def curvefit_choice(data, fitfunc):
         def func(x,a):
             return a*x*np.log(x)
         popt, pcov = curve_fit(func, x, y)
-        print popt
-        print pcov
+        #print popt
+        #print pcov
         xx = np.linspace(100,1000,1000)
         yy = func(xx, *popt)
         plot(xdata,ydata, 'ko')
@@ -43,38 +43,77 @@ def curvefit_choice(data, fitfunc):
         
     
         coef,stats = P.polyfit(xdata,ydata,deg=4, full=True)
-        print coef
-        print stats
+        #print coef
+        #print stats
         coef,stats = P.polyfit(xdata,ydata,deg=3, full=True)
-        print coef
-        print stats
+        #print coef
+        #print stats
         coef,stats = P.polyfit(xdata,ydata,deg=2, full=True)
-        print coef
-        print stats
+        #print coef
+        #print stats
         coef,stats = P.polyfit(xdata,ydata,deg=1, full=True)
-        print coef
-        print stats
+        #print coef
+        #print stats
     else: 
         print 'unexpected function name for fit, try polynomial or log'
     return 1
+
+def graph(array, name):
+    
+    x = array[:,0]
+    y = array[:,1]
+    plot(x,y)
+    savefig(name + '.png')
 def main():
+    if len(sys.argv)>2:
+        print 'provide method input; bubble = 1, quickSort = 2'
+        sys.exit()
+    if len(sys.argv)<2:
+        print 'provide method input; bubble = 1, quickSort = 2'
+        sys.exit()
+    method=int (sys.argv[1])
     complex_array= np.zeros((10000,2)) #allocate space for the array of n, and time to sort array with n elements
     #print complex_array
     index = 0
     array_range = 10000
-    for array_size in range(100,1000,100): #iterate over the range (100,1000) in increments of 100
-        for arraynum in range(2): #randomly generate 100 arrays of the given array_size
-            array=randArray.randArray(array_range,array_size)
-            #[sortedArray, runTime, assign_count, cond_count]=bubbleSort.bubbleSort(array) #bubble sort and get the sorted array, the execution time, assignment and conditionals count
-            [sortedArray, runTime, assign_count, cond_count]=quickSort.quickSort(array)            
-           # print assign_count, cond_count
-            complex_array[index,:]= [array_size, runTime]
-            index = index + 1
+    assign_count_array =np.zeros((10000,2)) #allocate space for the array of n, and num of asignments to sort array with n elements
+    cond_count_array = np.zeros((10000,2)) #allocate space for the array of n, and num of conditional comparisons to sort array with n elements
+    if method == 1:
+        print 'bubbleSort'
+        
+        for array_size in range(100,1000,100): #iterate over the range (100,1000) in increments of 100
+            for arraynum in range(3): #randomly generate 100 arrays of the given array_size
+                array=randArray.randArray(array_range,array_size)
+                [sortedArray, runTime, assign_count, cond_count]=bubbleSort.bubbleSort(array) #bubble sort and get the sorted array, the execution time, assignment and conditionals count          
+                #print assign_count, cond_count
+                complex_array[index,:]= [array_size, runTime]
+                index = index + 1
+    elif method == 2:
+        print 'quickSort'
+        for array_size in range(100,1000,100): #iterate over the range (100,1000) in increments of 100
+            for arraynum in range(100): #randomly generate 100 arrays of the given array_size
+                array=randArray.randArray(array_range,array_size)
+                [sortedArray, runTime, assign_count, cond_count]=quickSort.quickSort(array)            
+                #print assign_count, cond_count
+                complex_array[index,:]= [array_size, runTime]
+                assign_count_array[index,:] = [array_size, assign_count]
+                
+                
+                cond_count_array[index,:] = [array_size, cond_count]
+                index = index + 1
     complex_array = complex_array[0:index]
-    print complex_array
+    assign_count_array = complex_array[0:index]
+    cond_count_array = complex_array[0:index]
+    #print complex_array
+    #print cond_count_array
     xdata=complex_array[:,0]
     ydata=complex_array[:,1]
-    curvefit_choice(complex_array, 'log')
+    if method == 1:
+        curvefit_choice(complex_array, 'polynomial')
+    if method == 2:
+        curvefit_choice(complex_array, 'log')
+    graph(assign_count_array, 'assignments_count')
+    graph(cond_count_array, 'conditionals_count')
     return complex_array
 if __name__ == '__main__':
     main()
