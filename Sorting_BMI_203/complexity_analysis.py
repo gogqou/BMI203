@@ -53,7 +53,8 @@ def curvefit_choice(data, fitfunc):
         yy = func(xx, *popt)
         
         plot(xdata,ydata, 'ko', label = 'bubbleSort')
-        plot(xx,yy, label='fit')
+        plot(xx,yy, label='ax^2 + bx + c polynomial fit')
+        legend()
         savefig('polyfit_bubbleSort.png')
         plt.clf()
     else: 
@@ -65,8 +66,9 @@ def graph(array, name):
     
     array_x = array[:,0]
     array_y = array[:,1]
-    plot(array_x,array_y, 'o')
+    plot(array_x,array_y, 'o', label = name)
     print array_y
+    legend()
     savefig(name + '.png')
     
     
@@ -124,8 +126,8 @@ def main():
         curvefit_choice(complex_array, 'polynomial')
     if method == 2:
         curvefit_choice(complex_array, 'log')
-    graph(assign_count_array, 'assignments_count')
-    graph(cond_count_array, 'conditionals_count')
+    graph(assign_count_array, 'Assignments Count')
+    graph(cond_count_array, 'Conditionals Count')
     return complex_array
 if __name__ == '__main__':
     main()
