@@ -23,10 +23,14 @@ from scipy.optimize import curve_fit
 from pylab import *
 
 def curvefit_choice(data, fitfunc):
+    #curve fit based on whether expected is log or polynomial time
+    
+    
     xdata=data[:,0]
     ydata=data[:,1]
     x = np.array(xdata)
     y = np.array(ydata)
+    
     if fitfunc is 'log':
         
         def func(x,a):
@@ -39,9 +43,12 @@ def curvefit_choice(data, fitfunc):
         plot(xdata,ydata, 'ko')
         plot(xx,yy)
         savefig('log_fit_quicksort.png')
+        
+        
     elif fitfunc is 'polynomial':
         
-    
+        # try different orders of polynomial fit and get error stats + coefficients as readouts
+        
         coef,stats = P.polyfit(xdata,ydata,deg=4, full=True)
         #print coef
         #print stats
@@ -59,11 +66,15 @@ def curvefit_choice(data, fitfunc):
     return 1
 
 def graph(array, name):
+    # graphs a given array and saves it based on input name
     
-    x = array[:,0]
-    y = array[:,1]
-    plot(x,y)
+    array_x = array[:,0]
+    array_y = array[:,1]
+    plot(array_x,array_y, 'o')
+    print array_y
     savefig(name + '.png')
+    
+    
 def main():
     if len(sys.argv)>2:
         print 'provide method input; bubble = 1, quickSort = 2'
@@ -71,13 +82,16 @@ def main():
     if len(sys.argv)<2:
         print 'provide method input; bubble = 1, quickSort = 2'
         sys.exit()
+        
     method=int (sys.argv[1])
+    
     complex_array= np.zeros((10000,2)) #allocate space for the array of n, and time to sort array with n elements
     #print complex_array
     index = 0
     array_range = 10000
     assign_count_array =np.zeros((10000,2)) #allocate space for the array of n, and num of asignments to sort array with n elements
     cond_count_array = np.zeros((10000,2)) #allocate space for the array of n, and num of conditional comparisons to sort array with n elements
+    
     if method == 1:
         print 'bubbleSort'
         
@@ -87,7 +101,11 @@ def main():
                 [sortedArray, runTime, assign_count, cond_count]=bubbleSort.bubbleSort(array) #bubble sort and get the sorted array, the execution time, assignment and conditionals count          
                 #print assign_count, cond_count
                 complex_array[index,:]= [array_size, runTime]
+                assign_count_array[index,:] = [array_size, assign_count]           
+                cond_count_array[index,:] = [array_size, cond_count]
+                print cond_count_array[index,:]
                 index = index + 1
+    
     elif method == 2:
         print 'quickSort'
         for array_size in range(100,1000,100): #iterate over the range (100,1000) in increments of 100
@@ -97,13 +115,12 @@ def main():
                 #print assign_count, cond_count
                 complex_array[index,:]= [array_size, runTime]
                 assign_count_array[index,:] = [array_size, assign_count]
-                
-                
                 cond_count_array[index,:] = [array_size, cond_count]
+                print cond_count_array[index,:]
                 index = index + 1
     complex_array = complex_array[0:index]
-    assign_count_array = complex_array[0:index]
-    cond_count_array = complex_array[0:index]
+    assign_count_array = assign_count_array[0:index]
+    cond_count_array = cond_count_array[0:index]
     #print complex_array
     #print cond_count_array
     xdata=complex_array[:,0]
