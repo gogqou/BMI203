@@ -24,8 +24,7 @@ from pylab import *
 
 def curvefit_choice(data, fitfunc):
     #curve fit based on whether expected is log or polynomial time
-    
-    
+        
     xdata=data[:,0]
     ydata=data[:,1]
     x = np.array(xdata)
@@ -46,21 +45,17 @@ def curvefit_choice(data, fitfunc):
         
         
     elif fitfunc is 'polynomial':
+        def func(x,a,b,c):
+            return a*x**2 + b*x + c
+
+        popt, pcov = curve_fit(func, x, y)
+        xx = np.linspace(100,1000,1000)
+        yy = func(xx, *popt)
         
-        # try different orders of polynomial fit and get error stats + coefficients as readouts
-        
-        coef,stats = P.polyfit(xdata,ydata,deg=4, full=True)
-        #print coef
-        #print stats
-        coef,stats = P.polyfit(xdata,ydata,deg=3, full=True)
-        #print coef
-        #print stats
-        coef,stats = P.polyfit(xdata,ydata,deg=2, full=True)
-        #print coef
-        #print stats
-        coef,stats = P.polyfit(xdata,ydata,deg=1, full=True)
-        #print coef
-        #print stats
+        plot(xdata,ydata, 'ko', label = 'bubbleSort')
+        plot(xx,yy, label='fit')
+        savefig('polyfit_bubbleSort.png')
+        plt.clf()
     else: 
         print 'unexpected function name for fit, try polynomial or log'
     return 1
@@ -96,14 +91,14 @@ def main():
         print 'bubbleSort'
         
         for array_size in range(100,1000,100): #iterate over the range (100,1000) in increments of 100
-            for arraynum in range(3): #randomly generate 100 arrays of the given array_size
+            for arraynum in range(100): #randomly generate 100 arrays of the given array_size
                 array=randArray.randArray(array_range,array_size)
                 [sortedArray, runTime, assign_count, cond_count]=bubbleSort.bubbleSort(array) #bubble sort and get the sorted array, the execution time, assignment and conditionals count          
                 #print assign_count, cond_count
                 complex_array[index,:]= [array_size, runTime]
                 assign_count_array[index,:] = [array_size, assign_count]           
                 cond_count_array[index,:] = [array_size, cond_count]
-                print cond_count_array[index,:]
+                #print cond_count_array[index,:]
                 index = index + 1
     
     elif method == 2:
