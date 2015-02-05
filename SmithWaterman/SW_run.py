@@ -24,17 +24,27 @@ Output: filled out similarity matrix H and best sequence alignment and indices f
 
 '''
 
-import sub_matrix_mk_dict as subMatrixdict
-
+import sub_matrix_mk_dict as subMdict
+import numpy as np
 import sys
-
+def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
+    
+    similarity_matrix = np.zeros([len(seq1), len(seq2)])
+    print similarity_matrix
+    
+    
+    return similarity_matrix
 def main():
-    if len(sys.argv)>3:
+    if len(sys.argv)>4:
         print 'provide sequences to align and substitution matrix '
         sys.exit()
-    subMatrixFile = sys.argv[1]
-    subMatrixdict.submatrix_dict(subMatrixFile)
+    seq1=sys.argv[1]
+    seq2=sys.argv[2]
+    subMatrixFile = sys.argv[3]
     
+    sub_Matrix = subMdict.mk_dict(subMatrixFile)
+    
+    sim_Matrix = similarity_matrix(seq1,seq2, sub_Matrix)
     
     return 'done'
 if __name__ == '__main__':

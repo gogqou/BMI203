@@ -11,7 +11,7 @@ import readwrite_file as rwF
 
 from numpy import genfromtxt
 import re
-def submatrix_dict(inputFile):
+def mk_dict(inputFile):
     
     sub_dict = {}
     temp = []
@@ -28,5 +28,4 @@ def submatrix_dict(inputFile):
     for i in range(AArange):
         for j in range(AArange):
             sub_dict[AAlist[i]+AAlist[j]] = submatrixVals[i,j]
-            
     return sub_dict
