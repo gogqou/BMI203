@@ -15,18 +15,18 @@ def submatrix_dict(inputFile):
     
     sub_dict = {}
     temp = []
-    i= 0
     lines =rwF.readtxt(inputFile)
     for line in lines:
         if '#' not in line:
             if 'A' in line:
                 names = line
-    names= re.sub(r"\W", "", names)
-    print names
-    a=list(names)
-    print a
-    a=genfromtxt(inputFile, comments="#", skip_header=0, unpack=True)
-    #lines=rwF.readtxt(inputFile)
-    print a[1]
+    names= re.sub(r" ", "", names)
+    AAlist=list(names)
+    submatrixVals=genfromtxt(inputFile, comments="#",  unpack=False)
+    submatrixVals = submatrixVals[1:]
+    AArange=len(AAlist)
+    for i in range(AArange):
+        for j in range(AArange):
+            sub_dict[AAlist[i]+AAlist[j]] = submatrixVals[i,j]
             
     return sub_dict
