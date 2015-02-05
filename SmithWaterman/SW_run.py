@@ -31,6 +31,17 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
     
     similarity_matrix = np.zeros([len(seq1), len(seq2)])
     print similarity_matrix
+    H = similarity_matrix
+    C = substitution_Matrix_dictionary
+    i = 1
+    j = 1
+    while True:
+        
+        left = H(i-1,j)+C(seq1[i]+'*')
+        up=H(i,j-1)+C('*'+seq2[j])
+        diagonal = H(i-1,j-1)+C(seq1[i]+seq2[j])
+        
+        SM(i,j) = max()
     
     
     return similarity_matrix
