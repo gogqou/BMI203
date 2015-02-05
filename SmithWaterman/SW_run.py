@@ -33,16 +33,27 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
     print similarity_matrix
     H = similarity_matrix
     C = substitution_Matrix_dictionary
-    i = 1
-    j = 1
-    while True:
+    pointers = {}
+
+    print len(seq1)
+    for i in range(1,len(seq1)):
+        for j in range(1,len(seq2)):
+            left = H[i-1,j]+C[seq1[i]+'*']
+            up=H[i,j-1]+C['*'+seq2[j]]
+            diagonal = H[i-1,j-1]+C[seq1[i]+seq2[j]]
+            
+            H[i,j] = max(left, up, diagonal, 0)
+            if H[i,j]== left:
+                pointers[str(i)+str(j)] = 'left'
+            elif H[i,j]== up:
+                pointers[str(i)+str(j)] = 'up'
+            else:
+                pointers[str(i)+str(j)] = 'diagonal'
+            j=j+1
+        i=i+1        
         
-        left = H(i-1,j)+C(seq1[i]+'*')
-        up=H(i,j-1)+C('*'+seq2[j])
-        diagonal = H(i-1,j-1)+C(seq1[i]+seq2[j])
-        
-        SM(i,j) = max()
-    
+    print H    
+    print pointers 
     
     return similarity_matrix
 def main():
