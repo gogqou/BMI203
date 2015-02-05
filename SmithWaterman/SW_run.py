@@ -24,12 +24,16 @@ Output: filled out similarity matrix H and best sequence alignment and indices f
 
 '''
 
-import sub_matrix_mk_dict
+import sub_matrix_mk_dict as subMatrixdict
 
-
+import sys
 
 def main():
-    
+    if len(sys.argv)>3:
+        print 'provide sequences to align and substitution matrix '
+        sys.exit()
+    subMatrixFile = sys.argv[1]
+    subMatrixdict.submatrix_dict(subMatrixFile)
     
     
     return 'done'
