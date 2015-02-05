@@ -17,12 +17,21 @@ Scoring matrix includes gap-scoring scheme and substitution matrix; needs to be 
 
 Take input: seq1 and seq2
 Substitution matrix file--should call a parsing function to read in the file
-Gap scoring definitions
+(includes gap costs)
 
-Output: filled out similarity matrix H
+Output: filled out similarity matrix H and best sequence alignment and indices from seq1 and seq2
 
 
 '''
 
+import sub_matrix_mk_dict
+
+
+
+def main():
+    
+    
+    
+    return 'done'
 if __name__ == '__main__':
-    pass
+    main()
