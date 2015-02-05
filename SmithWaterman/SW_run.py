@@ -29,33 +29,52 @@ import numpy as np
 import sys
 def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
     
-    similarity_matrix = np.zeros([len(seq1), len(seq2)])
-    print similarity_matrix
+    similarity_matrix = np.zeros([len(seq1), len(seq2)]) #initializes similarity matrix with zeros everywhere; will replace all but first row and column
     H = similarity_matrix
-    C = substitution_Matrix_dictionary
-    pointers = {}
-
-    print len(seq1)
+    C = substitution_Matrix_dictionary # for easier typing later on
+    pointers = {} #dictionary to keep pointers of where each space got its value
     for i in range(1,len(seq1)):
         for j in range(1,len(seq2)):
-            left = H[i-1,j]+C[seq1[i]+'*']
-            up=H[i,j-1]+C['*'+seq2[j]]
-            diagonal = H[i-1,j-1]+C[seq1[i]+seq2[j]]
+            #calculates the value for each of the possible moves so it's easier to compare them later
+            left = H[i-1,j]+C[seq1[i]+'*'] #gap in seq2
+            up=H[i,j-1]+C['*'+seq2[j]] #gap in seq1
+            diagonal = H[i-1,j-1]+C[seq1[i]+seq2[j]] #match
             
-            H[i,j] = max(left, up, diagonal, 0)
+            H[i,j] = max(left, up, diagonal, 0) #prevents negative values by taking the max with 0
             if H[i,j]== left:
                 pointers[str(i)+str(j)] = 'left'
             elif H[i,j]== up:
                 pointers[str(i)+str(j)] = 'up'
             else:
                 pointers[str(i)+str(j)] = 'diagonal'
-            j=j+1
-        i=i+1        
-        
-    print H    
-    print pointers 
-    
-    return similarity_matrix
+            j=j+1 #increment across the matrix
+        i=i+1        #then increment down the matrix, so you know all values you need will be available
+            
+    return H, pointers
+
+def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers):
+    H=similarity_matrix
+    seq = []
+    indices = np.unravel_index(H.argmax(), H.shape)
+    i = indices[0]
+    j = indices[1]
+    seq.append(seq1[j])
+    print seq
+    while H[i,j]>0:
+        ind1=str(i)
+        ind2=str(j)
+        if pointers[ind1+ind2] is 'left':
+            j = j-1
+            seq.append(seq2[j])
+        elif pointers[ind1+ind2] is 'up':
+            i = i-1
+            seq.append(seq1[i])
+        else: 
+            i = i-1
+            j = j-1
+            seq.append(seq1[i])
+    seq.reverse()
+    return seq
 def main():
     if len(sys.argv)>4:
         print 'provide sequences to align and substitution matrix '
@@ -66,7 +85,10 @@ def main():
     
     sub_Matrix = subMdict.mk_dict(subMatrixFile)
     
-    sim_Matrix = similarity_matrix(seq1,seq2, sub_Matrix)
+    [sim_Matrix, pointers] = similarity_matrix(seq1,seq2, sub_Matrix)
+    print sim_Matrix
+    aligned_sequence = trace_aligned_seq(seq1, seq2, sim_Matrix, pointers)
+    print aligned_sequence
     
     return 'done'
 if __name__ == '__main__':
