@@ -27,6 +27,7 @@ Output: filled out similarity matrix H and best sequence alignment and indices f
 import sub_matrix_mk_dict as subMdict
 import numpy as np
 import sys
+import read_fasta as rFasta
 def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
     
     similarity_matrix = np.zeros([len(seq1), len(seq2)]) #initializes similarity matrix with zeros everywhere; will replace all but first row and column
@@ -54,42 +55,52 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
 
 def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers):
     H=similarity_matrix
-    seq = []
+    seq = ''
     indices = np.unravel_index(H.argmax(), H.shape)
     i = indices[0]
     j = indices[1]
-    seq.append(seq1[j])
-    print seq
+    print i,j
+    print seq2[j]
+    end_seq1_index = i
+    end_seq2_index = j
+    seq=seq+seq2[j]
     while H[i,j]>0:
         ind1=str(i)
         ind2=str(j)
         if pointers[ind1+ind2] is 'left':
             j = j-1
-            seq.append(seq2[j])
+            seq=seq+seq2[j]
         elif pointers[ind1+ind2] is 'up':
             i = i-1
-            seq.append(seq1[i])
+            seq=seq+seq1[i]
         else: 
             i = i-1
             j = j-1
-            seq.append(seq1[i])
-    seq.reverse()
-    return seq
+            seq=seq+seq1[i]
+    seq=seq[::-1]
+    start_seq1_index = i
+    start_seq2_index = j
+    return seq, start_seq1_index,start_seq2_index,end_seq1_index,end_seq2_index
 def main():
     if len(sys.argv)>4:
         print 'provide sequences to align and substitution matrix '
         sys.exit()
-    seq1=sys.argv[1]
-    seq2=sys.argv[2]
+    seq1=rFasta.read_fa(sys.argv[1])
+    print seq1, len(seq1)
+    seq2=rFasta.read_fa(sys.argv[2])
+    print seq2, len(seq2)
     subMatrixFile = sys.argv[3]
     
     sub_Matrix = subMdict.mk_dict(subMatrixFile)
     
     [sim_Matrix, pointers] = similarity_matrix(seq1,seq2, sub_Matrix)
     print sim_Matrix
-    aligned_sequence = trace_aligned_seq(seq1, seq2, sim_Matrix, pointers)
+    [aligned_sequence, seq1a,seq2a, seq1b, seq2b] = trace_aligned_seq(seq1, seq2, sim_Matrix, pointers)
     print aligned_sequence
-    
+    start = min(seq1a, seq2a)
+    end = max(seq1b, seq2b)
+    print seq1[start:end]
+    print seq2[start:end]
     return 'done'
 if __name__ == '__main__':
     main()
