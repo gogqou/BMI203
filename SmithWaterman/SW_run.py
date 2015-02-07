@@ -72,6 +72,8 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers):
     while H[i,j]>0:
         ind1=str(i)
         ind2=str(j)
+        
+        print 'test'
         if pointers[ind1+ind2] is 'left':
             j = j-1
             seq=seq+seq2[j]
