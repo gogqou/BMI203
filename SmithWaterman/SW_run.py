@@ -34,6 +34,7 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
     H = similarity_matrix
     C = substitution_Matrix_dictionary # for easier typing later on
     pointers = {} #dictionary to keep pointers of where each space got its value
+    score = 0
     for i in range(1,len(seq1)):
         for j in range(1,len(seq2)):
             #calculates the value for each of the possible moves so it's easier to compare them later
@@ -41,7 +42,9 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
             up=H[i,j-1]+C['*'+seq2[j]] #gap in seq1
             diagonal = H[i-1,j-1]+C[seq1[i]+seq2[j]] #match
             
-            H[i,j] = max(left, up, diagonal, 0) #prevents negative values by taking the max with 0
+            H[i,j] = max(left, up, diagonal) 
+            score = score+ H[i,j]
+            
             if H[i,j]== left:
                 pointers[str(i)+str(j)] = 'left'
             elif H[i,j]== up:
@@ -51,7 +54,7 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
             j=j+1 #increment across the matrix
         i=i+1        #then increment down the matrix, so you know all values you need will be available
             
-    return H, pointers
+    return H, pointers, score
 
 def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers):
     H=similarity_matrix
@@ -93,10 +96,14 @@ def main():
     
     sub_Matrix = subMdict.mk_dict(subMatrixFile)
     
-    [sim_Matrix, pointers] = similarity_matrix(seq1,seq2, sub_Matrix)
+    [sim_Matrix, pointers, score] = similarity_matrix(seq1,seq2, sub_Matrix)
     print sim_Matrix
+    print 'score = ', score
     [aligned_sequence, seq1a,seq2a, seq1b, seq2b] = trace_aligned_seq(seq1, seq2, sim_Matrix, pointers)
     print aligned_sequence
+    score =score/len(aligned_sequence)
+    print 'score = ', score
+    print seq1a,seq2a, seq1b, seq2b
     start = min(seq1a, seq2a)
     end = max(seq1b, seq2b)
     print seq1[start:end]
