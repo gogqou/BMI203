@@ -43,7 +43,6 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
             diagonal = H[i-1,j-1]+C[seq1[i]+seq2[j]] #match
             
             H[i,j] = max(left, up, diagonal, 0) 
-            score = score+ H[i,j]
             
             if H[i,j]== left:
                 pointers[str(i)+str(j)] = 'left'
@@ -54,7 +53,7 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
             j=j+1 #increment across the matrix
         i=i+1        #then increment down the matrix, so you know all values you need will be available
             
-    return H, pointers, score
+    return H, pointers
 
 def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers):
     H=similarity_matrix
@@ -64,16 +63,17 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers):
     indices = np.unravel_index(H.argmax(), H.shape)
     i = indices[0]
     j = indices[1]
-    end_seq1_index = i
-    end_seq2_index = j
+    start=i
+    end= j
     seq=seq+seq2[j]
     newseq1=newseq1+seq2[j]
     newseq2=newseq2+seq2[j]
+    score = H[i,j]
     while H[i,j]>0:
         ind1=str(i)
         ind2=str(j)
         
-        print 'test'
+        score = score+ H[i,j]
         if pointers[ind1+ind2] is 'left':
             j = j-1
             seq=seq+seq2[j]
@@ -82,7 +82,7 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers):
         elif pointers[ind1+ind2] is 'up':
             i = i-1
             seq=seq+seq1[i]
-            newseq1 = newseq1 + seq1[j]
+            newseq1 = newseq1 + seq1[i]
             newseq2 = newseq2+'-'
         else: 
             i = i-1
@@ -93,9 +93,10 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers):
     seq=seq[::-1]
     newseq1=newseq1[::-1]
     newseq2=newseq2[::-1]
-    start_seq1_index = i
-    start_seq2_index = j
-    return seq, newseq1, newseq2,start_seq1_index,start_seq2_index,end_seq1_index,end_seq2_index
+    H[start,end]=0
+    return seq, newseq1, newseq2, H, score
+
+
 def main():
     if len(sys.argv)>4:
         print 'provide sequences to align and substitution matrix '
@@ -104,23 +105,17 @@ def main():
     print seq1, len(seq1)
     seq2=rFasta.read_fa(sys.argv[2])
     print seq2, len(seq2)
+    
     subMatrixFile = sys.argv[3]
     
     sub_Matrix = subMdict.mk_dict(subMatrixFile)
-    
-    [sim_Matrix, pointers, score] = similarity_matrix(seq1,seq2, sub_Matrix)
-    print sim_Matrix
-    [aligned_sequence, fitted_seq1, fitted_seq2, seq1a,seq2a, seq1b, seq2b] = trace_aligned_seq(seq1, seq2, sim_Matrix, pointers)
+    [sim_Matrix, pointers] = similarity_matrix(seq1,seq2, sub_Matrix)
+            
+    [aligned_sequence, fitted_seq1, fitted_seq2, sim_Matrix, score] = trace_aligned_seq(seq1, seq2, sim_Matrix, pointers)
     print aligned_sequence
     print fitted_seq1
     print fitted_seq2
-    score =score/len(aligned_sequence)
     print 'score = ', score
-    print seq1a,seq2a, seq1b, seq2b
-    start = min(seq1a, seq2a)
-    end = max(seq1b, seq2b)
-    print seq1[start:end]
-    print seq2[start:end]
     return 'done'
 if __name__ == '__main__':
     main()
