@@ -42,7 +42,7 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
             up=H[i,j-1]+C['*'+seq2[j]] #gap in seq1
             diagonal = H[i-1,j-1]+C[seq1[i]+seq2[j]] #match
             
-            H[i,j] = max(left, up, diagonal) 
+            H[i,j] = max(left, up, diagonal, 0) 
             score = score+ H[i,j]
             
             if H[i,j]== left:
@@ -59,31 +59,41 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
 def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers):
     H=similarity_matrix
     seq = ''
+    newseq1 = ''
+    newseq2= ''
     indices = np.unravel_index(H.argmax(), H.shape)
     i = indices[0]
     j = indices[1]
-    print i,j
-    print seq2[j]
     end_seq1_index = i
     end_seq2_index = j
     seq=seq+seq2[j]
+    newseq1=newseq1+seq2[j]
+    newseq2=newseq2+seq2[j]
     while H[i,j]>0:
         ind1=str(i)
         ind2=str(j)
         if pointers[ind1+ind2] is 'left':
             j = j-1
             seq=seq+seq2[j]
+            newseq2 = newseq2 + seq2[j]
+            newseq1 = newseq1+'-'
         elif pointers[ind1+ind2] is 'up':
             i = i-1
             seq=seq+seq1[i]
+            newseq1 = newseq1 + seq1[j]
+            newseq2 = newseq2+'-'
         else: 
             i = i-1
             j = j-1
             seq=seq+seq1[i]
+            newseq1=newseq1+seq1[i]
+            newseq2=newseq2+seq2[j]
     seq=seq[::-1]
+    newseq1=newseq1[::-1]
+    newseq2=newseq2[::-1]
     start_seq1_index = i
     start_seq2_index = j
-    return seq, start_seq1_index,start_seq2_index,end_seq1_index,end_seq2_index
+    return seq, newseq1, newseq2,start_seq1_index,start_seq2_index,end_seq1_index,end_seq2_index
 def main():
     if len(sys.argv)>4:
         print 'provide sequences to align and substitution matrix '
@@ -98,9 +108,10 @@ def main():
     
     [sim_Matrix, pointers, score] = similarity_matrix(seq1,seq2, sub_Matrix)
     print sim_Matrix
-    print 'score = ', score
-    [aligned_sequence, seq1a,seq2a, seq1b, seq2b] = trace_aligned_seq(seq1, seq2, sim_Matrix, pointers)
+    [aligned_sequence, fitted_seq1, fitted_seq2, seq1a,seq2a, seq1b, seq2b] = trace_aligned_seq(seq1, seq2, sim_Matrix, pointers)
     print aligned_sequence
+    print fitted_seq1
+    print fitted_seq2
     score =score/len(aligned_sequence)
     print 'score = ', score
     print seq1a,seq2a, seq1b, seq2b
