@@ -41,8 +41,10 @@ def writecsv(array,end_dir,outputname):
     return 1
 
 def writetxt(array, end_dir, outputname):
-    
-    
+    os.chdir(end_dir)
+    f=open(outputname, 'w')
+    f.write(array)
+    f.close()
     return 1
 
 
