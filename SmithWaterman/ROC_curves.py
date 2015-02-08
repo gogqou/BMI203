@@ -24,24 +24,14 @@ def false_pos_rate(pos_score_list, neg_score_list, TPrate):
     above_threshold= [k for k in neg_score_list if k>=percentile_pos_scores]
     false_pos_rate = len(above_threshold)/float(len(neg_score_list))
     return false_pos_rate
-def ROC_graph(pos_scores, neg_scores, home, matrixname):
+def ROC_graph(pos_scores, neg_scores):
     ROC_array = np.zeros([50,2])
     i = 0
     for TPrate in range(0, 100, 2):
         FPrate = false_pos_rate(pos_scores,neg_scores, TPrate)
         ROC_array[i]=[TPrate, FPrate]
         i= i+1  
-    #pylab.plot(ROC_array[:,1], ROC_array[:,0]/100, 'ko', label = matrixname)
-    #pylab.legend()
-    #pylab.ylabel('True Positive Rate')
-#     pylab.xlabel('False Positive Rate')
-#     pylab.savefig(matrixname + 'ROC.png')
-#     pylab.plt.clf()
-
     return ROC_array
-
-
-
 def main():
     if len(sys.argv)>5:
         print 'provide positive and negative pairs of sequences to align, directory, and substitution matrix choice '
@@ -59,7 +49,7 @@ def main():
     
     
     # for testing different scoring matrices
-  
+    '''
     for i in range(0,len(subMatrixFile_list)):
         sub_Matrix = subMdict.mk_dict(home+subMatrixFile_list[i]) 
         pos_scores = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrix, gap_init, gap_ext)
@@ -67,12 +57,16 @@ def main():
         ROC_array = ROC_graph(pos_scores, neg_scores, home, subMatrixFile_list[i])
         pylab.plot(ROC_array[:,1], ROC_array[:,0]/100, label = subMatrixFile_list[i])
   
-        
+      '''  
+    pos_scores = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrix, gap_init, gap_ext)
+    neg_scores= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrix, gap_init, gap_ext)
+    ROC_array = ROC_graph(pos_scores, neg_scores,)
+    pylab.plot(ROC_array[:,1], ROC_array[:,0]/100, label = subMatrixFile)
     pylab.axis([0,1,0,1])
     pylab.legend(loc = 'lower right')
     pylab.ylabel('True Positive Rate')
     pylab.xlabel('False Positive Rate')
-    pylab.savefig('ROC.png')
+    pylab.savefig('ROC_BLOSUM50.png')
     print 'done'
     
     return 1

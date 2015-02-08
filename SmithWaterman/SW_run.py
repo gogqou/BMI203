@@ -34,7 +34,6 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary, gap_init, gap_ex
     H = similarity_matrix
     C = substitution_Matrix_dictionary # for easier typing later on
     pointers = {} #dictionary to keep pointers of where each space got its value
-    score = 0
     gap = 0
     for i in range(1,len(seq1)):
         for j in range(1,len(seq2)):
@@ -106,5 +105,7 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers):
     newseq1=newseq1[::-1]
     newseq2=newseq2[::-1]
     H[start,end]=0
+    # to test ROC, average by minimum len of the compared pair
+    #score = score/min(len(seq1), len(seq2))
     return seq, newseq1, newseq2, H, score
 
