@@ -19,8 +19,8 @@ def SW_one_round(seq1, seq2, sub_Matrix, gap_init, gap_ext):
     
     [aligned_sequence, fitted_seq1, fitted_seq2, sim_Matrix, score] = SW.trace_aligned_seq(seq1, seq2, sim_Matrix, pointers)
     #print aligned_sequence
-    #print fitted_seq1
-    #print fitted_seq2
+    print fitted_seq1
+    print fitted_seq2
     #print 'score = ', score
     
     return score
@@ -80,12 +80,12 @@ def main():
     home = sys.argv[3]
     pos_seq_list_file = home+pos_seq_list_name+'.txt'
     neg_seq_list_file = home+neg_seq_list_name+'.txt'
-    #subMatrixFile = sys.argv[4]
+    subMatrixFile = sys.argv[4]
     subMatrixFile_list = ['BLOSUM50', 'BLOSUM62', 'MATIO', 'PAM100', 'PAM250']
     FP_array = []
     i=0
     #gap_init_cost, gap_ext_cost
-    #sub_Matrix = subMdict.mk_dict(home+subMatrixFile)
+    sub_Matrix = subMdict.mk_dict(home+subMatrixFile)
     
     
     #for testing gap costs
@@ -103,7 +103,7 @@ def main():
     #graph_cost_array()
     
     
-    
+    '''
     # for testing input matrices
     for i in range(0,len(subMatrixFile_list)):
         sub_Matrix = subMdict.mk_dict(home+subMatrixFile_list[i])
@@ -115,6 +115,8 @@ def main():
         
     print FP_array
     RWFile.writetxt(FP_array, home, 'FPrate SubMatrices'+'Init9 Ext 3'+'.txt')
+    '''
+    pos_score_list = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix, 9, 3)
     return 'done'
 if __name__ == '__main__':
     main()
