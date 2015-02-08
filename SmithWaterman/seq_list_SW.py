@@ -42,34 +42,36 @@ def scores_from_seq_list(home,seq_list_file,sub_Matrix):
         seq2=rFasta.read_fa(home+seqfile2)
         score = SW_one_round(seq1, seq2, sub_Matrix)
         score_list[i] = score
+        
+    return score_list
+
+
+def false_pos_rate(pos_seq_list_file, neg_seq_list_file, home, sub_Matrix):
+    
+    pos_score_list = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix)
+    neg_score_list = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix)
+    seventy_percentile_pos_scores = np.percentile(pos_score_list, 30)
+    above_threshold= [k for k in neg_score_list if k>=seventy_percentile_pos_scores]
+    false_pos_rate = len(above_threshold)/float(len(neg_score_list))
+    return false_pos_rate
+    
 def main():
-    if len(sys.argv)>4:
+    if len(sys.argv)>5:
         print 'provide sequences to align, directory, and substitution matrix '
         sys.exit()
-    seq_list_name = sys.argv[1]
-    
-    home = sys.argv[2]
-    seq_list_file = home+seq_list_name+'.txt'
-    subMatrixFile = sys.argv[3]
+    pos_seq_list_name = sys.argv[1]
+    neg_seq_list_name = sys.argv[2]
+    home = sys.argv[3]
+    pos_seq_list_file = home+pos_seq_list_name+'.txt'
+    neg_seq_list_file = home+neg_seq_list_name+'.txt'
+    subMatrixFile = sys.argv[4]
     
     sub_Matrix = subMdict.mk_dict(home+subMatrixFile)
     
-    seq_list = list_of_sequences_from_txt(seq_list_file)
-    print seq_list
-    score_list = np.zeros([len(seq_list),1])
-    for i in range(0,len(seq_list)):
-        seq_locations = seq_list[i]
-        seqfile1=seq_locations[0]
-        seqfile2=seq_locations[1]
-        seq1=rFasta.read_fa(home+seqfile1)
-        seq2=rFasta.read_fa(home+seqfile2)
-        score = SW_one_round(seq1, seq2, sub_Matrix)
-        score_list[i] = score
-    #print score_list
-    above_threshold= [k for k in score_list if k>=4657.0]
-    print len(above_threshold)/float(len(score_list))
+    false_pos_rt= false_pos_rate(pos_seq_list_file, neg_seq_list_file, home, sub_Matrix)
+    print false_pos_rt
     #print np.percentile(score_list, 70)
-    RWFile.writecsv(score_list, home, seq_list_name+subMatrixFile+'score_list.txt')
+    #RWFile.writecsv(score_list, home, seq_list_name+subMatrixFile+'score_list.txt')
     return 'done'
 if __name__ == '__main__':
     main()
