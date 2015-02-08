@@ -40,8 +40,12 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary, gap_init, gap_ex
         for j in range(1,len(seq2)):
             #calculates the value for each of the possible moves so it's easier to compare them later
             
-            left = H[i-1,j]+C[seq1[i]+'*'] +(gap-1)*gap_init - gap*gap_ext #gap in seq2
-            up=H[i,j-1]+C['*'+seq2[j]] +(gap-1)*gap_init - gap*gap_ext #gap in seq1; if gap=1, then there was already a gap started, no gap_init cost
+            #left = H[i-1,j]+C[seq1[i]+'*'] +(gap-1)*gap_init - gap*gap_ext #gap in seq2
+            #up=H[i,j-1]+C['*'+seq2[j]] +(gap-1)*gap_init - gap*gap_ext 
+            left = H[i-1,j]+(gap-1)*gap_init - gap*gap_ext #gap in seq2
+            up=H[i,j-1] +(gap-1)*gap_init - gap*gap_ext 
+            #gap in seq1; if gap=1, then there was already a gap started, no gap_init cost
+                       
             #if gap = 0, then choosing either left or up requires starting a gap, multiplying -1 by the gap_init cost means subtracting it
             diagonal = H[i-1,j-1]+C[seq1[i]+seq2[j]] #match
             

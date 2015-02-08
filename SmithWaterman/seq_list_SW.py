@@ -77,8 +77,7 @@ def main():
             FP_array[i] = [gap_init, gap_ext, false_pos_rt]
             i=i+1
     print FP_array
-    #print np.percentile(score_list, 70)
-    #RWFile.writecsv(score_list, home, seq_list_name+subMatrixFile+'score_list.txt')
+    RWFile.writecsv(FP_array, home, 'FPrate'+subMatrixFile+'.txt')
     return 'done'
 if __name__ == '__main__':
     main()
