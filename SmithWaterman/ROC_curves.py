@@ -62,6 +62,8 @@ def main():
         neg_scores= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrix, gap_init, gap_ext)
         ROC_array = ROC_graph(pos_scores, neg_scores, home, subMatrixFile_list[i])
         pylab.plot(ROC_array[:,1], ROC_array[:,0]/100, 'o', label = subMatrixFile_list[i])
+        
+    pylab.axis([0,1,0,1])
     pylab.legend()
     pylab.ylabel('True Positive Rate')
     pylab.xlabel('False Positive Rate')
