@@ -28,7 +28,7 @@ import sub_matrix_mk_dict as subMdict
 import numpy as np
 import sys
 import read_fasta as rFasta
-def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
+def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary, gap_init, gap_ext):
     
     similarity_matrix = np.zeros([len(seq1), len(seq2)]) #initializes similarity matrix with zeros everywhere; will replace all but first row and column
     H = similarity_matrix
@@ -38,6 +38,15 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary):
     for i in range(1,len(seq1)):
         for j in range(1,len(seq2)):
             #calculates the value for each of the possible moves so it's easier to compare them later
+            
+            
+            
+            # NEED TO ADD IN A CHECK FOR IF THIS IS A GAP INIT OR EXTENSION
+            
+            
+            
+            
+            
             left = H[i-1,j]+C[seq1[i]+'*'] #gap in seq2
             up=H[i,j-1]+C['*'+seq2[j]] #gap in seq1
             diagonal = H[i-1,j-1]+C[seq1[i]+seq2[j]] #match

@@ -12,9 +12,9 @@ import readwrite_file as RWFile
 import SW_run as SW
 import os
 
-def SW_one_round(seq1, seq2, sub_Matrix):
+def SW_one_round(seq1, seq2, sub_Matrix, gap_init, gap_ext):
     
-    [sim_Matrix, pointers] = SW.similarity_matrix(seq1,seq2, sub_Matrix)
+    [sim_Matrix, pointers] = SW.similarity_matrix(seq1,seq2, sub_Matrix, gap_init, gap_ext)
     
     [aligned_sequence, fitted_seq1, fitted_seq2, sim_Matrix, score] = SW.trace_aligned_seq(seq1, seq2, sim_Matrix, pointers)
     #print aligned_sequence
@@ -30,7 +30,7 @@ def list_of_sequences_from_txt(sequence_list_file):
         seq_list.append(line.split(' '))
     return seq_list
 
-def scores_from_seq_list(home,seq_list_file,sub_Matrix):
+def scores_from_seq_list(home,seq_list_file,sub_Matrix, gap_init, gap_ext):
     seq_list = list_of_sequences_from_txt(seq_list_file)
     print seq_list
     score_list = np.zeros([len(seq_list),1])
@@ -40,16 +40,14 @@ def scores_from_seq_list(home,seq_list_file,sub_Matrix):
         seqfile2=seq_locations[1]
         seq1=rFasta.read_fa(home+seqfile1)
         seq2=rFasta.read_fa(home+seqfile2)
-        score = SW_one_round(seq1, seq2, sub_Matrix)
+        score = SW_one_round(seq1, seq2, sub_Matrix, gap_init, gap_ext)
         score_list[i] = score
         
     return score_list
 
 
-def false_pos_rate(pos_seq_list_file, neg_seq_list_file, home, sub_Matrix):
+def false_pos_rate(pos_score_list, neg_score_list):
     
-    pos_score_list = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix)
-    neg_score_list = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix)
     seventy_percentile_pos_scores = np.percentile(pos_score_list, 30)
     above_threshold= [k for k in neg_score_list if k>=seventy_percentile_pos_scores]
     false_pos_rate = len(above_threshold)/float(len(neg_score_list))
@@ -57,7 +55,7 @@ def false_pos_rate(pos_seq_list_file, neg_seq_list_file, home, sub_Matrix):
     
 def main():
     if len(sys.argv)>5:
-        print 'provide sequences to align, directory, and substitution matrix '
+        print 'provide positive and negative pairs of sequences to align, directory, and substitution matrix choice '
         sys.exit()
     pos_seq_list_name = sys.argv[1]
     neg_seq_list_name = sys.argv[2]
@@ -65,10 +63,17 @@ def main():
     pos_seq_list_file = home+pos_seq_list_name+'.txt'
     neg_seq_list_file = home+neg_seq_list_name+'.txt'
     subMatrixFile = sys.argv[4]
+    FP_array = np.zeros(100,3)
     
+    #gap_init_cost, gap_ext_cost
     sub_Matrix = subMdict.mk_dict(home+subMatrixFile)
+    for gap_init in range(1,20,1):
+        for gap_ext in range(1,5):
     
-    false_pos_rt= false_pos_rate(pos_seq_list_file, neg_seq_list_file, home, sub_Matrix)
+            pos_score_list = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix, gap_init, gap_ext)
+            neg_score_list = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix, gap_init, gap_ext)
+            
+            false_pos_rt= false_pos_rate(pos_score_list, neg_score_list)
     print false_pos_rt
     #print np.percentile(score_list, 70)
     #RWFile.writecsv(score_list, home, seq_list_name+subMatrixFile+'score_list.txt')
