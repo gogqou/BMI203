@@ -72,6 +72,8 @@ def graph_cost_array():
     ax.set_zlabel('False Positive Rate')
     plt.show()
     return 1
+
+'''
 def main():
     if len(sys.argv)>5:
         print 'provide positive and negative pairs of sequences to align, directory, and substitution matrix choice '
@@ -86,11 +88,11 @@ def main():
     FP_array = []
     i=0
     #gap_init_cost, gap_ext_cost
-    #sub_Matrix = subMdict.mk_dict(home+subMatrixFile)
+    sub_Matrix = subMdict.mk_dict(home+subMatrixFile)
     
     
     #for testing gap costs
-    '''
+    
     for gap_init in range(1,21):
         for gap_ext in range(1,6):
             
@@ -100,10 +102,10 @@ def main():
             false_pos_rt= false_pos_rate(pos_score_list, neg_score_list)
             FP_array[i] = [gap_init, gap_ext, false_pos_rt]
             i=i+1
-            '''
+        
+     
     #graph_cost_array()
-    
-    
+
     
     # for testing input matrices
     for i in range(0,len(subMatrixFile_list)):
@@ -116,6 +118,12 @@ def main():
         
     print FP_array
     RWFile.writetxt(FP_array, home, 'FPrate SubMatrices'+'Init9 Ext 3'+'.txt')
+  
+            
+          
+            
+            
     return 'done'
 if __name__ == '__main__':
     main()
+    '''
