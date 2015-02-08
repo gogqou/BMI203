@@ -56,7 +56,7 @@ def false_pos_rate(pos_score_list, neg_score_list):
 
 
 def graph_cost_array():
-    
+    '''
     arrayfile = sys.argv[3]+'FPrateBLOSUM50.txt'
     array = RWFile.readcsv(arrayfile)
     fig=plt.figure()
@@ -69,6 +69,7 @@ def graph_cost_array():
     ax.set_ylabel('Gap Extension Cost')
     ax.set_zlabel('False Positive Rate')
     plt.show()
+    '''
     return 1
 def main():
     if len(sys.argv)>5:
