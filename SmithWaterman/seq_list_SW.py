@@ -11,6 +11,9 @@ import read_fasta as rFasta
 import readwrite_file as RWFile
 import SW_run as SW
 import os
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from mpl_toolkits.mplot3d import axes3d
 
 def SW_one_round(seq1, seq2, sub_Matrix, gap_init, gap_ext):
     
@@ -52,7 +55,23 @@ def false_pos_rate(pos_score_list, neg_score_list):
     above_threshold= [k for k in neg_score_list if k>=seventy_percentile_pos_scores]
     false_pos_rate = len(above_threshold)/float(len(neg_score_list))
     return false_pos_rate
+
+
+def graph_cost_array():
     
+    arrayfile = sys.argv[3]+'FPrateBLOSUM50.txt'
+    array = RWFile.readcsv(arrayfile)
+    fig=plt.figure()
+    ax= fig.add_subplot(111, projection = '3d')
+    x= array[:,0]
+    y= array[:,1]
+    z= array[:,2]
+    cset=ax.plot(x,y,z, ls= 'None', marker = 'o')
+    ax.set_xlabel('Gap Initiation Cost')
+    ax.set_ylabel('Gap Extension Cost')
+    ax.set_zlabel('False Positive Rate')
+    plt.show()
+    return 1
 def main():
     if len(sys.argv)>5:
         print 'provide positive and negative pairs of sequences to align, directory, and substitution matrix choice '
@@ -63,10 +82,15 @@ def main():
     pos_seq_list_file = home+pos_seq_list_name+'.txt'
     neg_seq_list_file = home+neg_seq_list_name+'.txt'
     subMatrixFile = sys.argv[4]
-    FP_array = np.zeros([100,3])
+    subMatrixFile_list = ['BLOSUM50', 'BLOSUM62', 'MATIO', 'PAM100', 'PAM250']
+    FP_array = []
     i=0
     #gap_init_cost, gap_ext_cost
-    sub_Matrix = subMdict.mk_dict(home+subMatrixFile)
+    #sub_Matrix = subMdict.mk_dict(home+subMatrixFile)
+    
+    
+    #for testing gap costs
+    '''
     for gap_init in range(1,21):
         for gap_ext in range(1,6):
             
@@ -76,8 +100,22 @@ def main():
             false_pos_rt= false_pos_rate(pos_score_list, neg_score_list)
             FP_array[i] = [gap_init, gap_ext, false_pos_rt]
             i=i+1
+            '''
+    #graph_cost_array()
+    
+    
+    
+    # for testing input matrices
+    for i in range(0,len(subMatrixFile_list)):
+        sub_Matrix = subMdict.mk_dict(home+subMatrixFile_list[i])
+    
+        pos_score_list = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix, 9, 3)
+        neg_score_list = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix, 9, 3)
+        false_pos_rt= false_pos_rate(pos_score_list, neg_score_list)
+        FP_array.append([subMatrixFile_list[i], false_pos_rt])
+        
     print FP_array
-    RWFile.writecsv(FP_array, home, 'FPrate'+subMatrixFile+'.txt')
+    RWFile.writetxt(FP_array, home, 'FPrate SubMatrices'+'Init9 Ext 3'+'.txt')
     return 'done'
 if __name__ == '__main__':
     main()

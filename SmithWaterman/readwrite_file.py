@@ -11,7 +11,7 @@ def readcsv(filename):
     print filename
     f=open(filename,'rb')
     lines = f.readlines()
-    size =[5768,7082]
+    size =[7082,3]
     csv_data= np.zeros(size)
     
     #enumerate numbers the lines, the 1 specifies that n starts at 1 instead of 0   
