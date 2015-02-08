@@ -63,18 +63,20 @@ def main():
     pos_seq_list_file = home+pos_seq_list_name+'.txt'
     neg_seq_list_file = home+neg_seq_list_name+'.txt'
     subMatrixFile = sys.argv[4]
-    FP_array = np.zeros(100,3)
-    
+    FP_array = np.zeros([100,3])
+    i=0
     #gap_init_cost, gap_ext_cost
     sub_Matrix = subMdict.mk_dict(home+subMatrixFile)
-    for gap_init in range(1,20,1):
-        for gap_ext in range(1,5):
-    
+    for gap_init in range(1,21):
+        for gap_ext in range(1,6):
+            
             pos_score_list = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix, gap_init, gap_ext)
             neg_score_list = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix, gap_init, gap_ext)
             
             false_pos_rt= false_pos_rate(pos_score_list, neg_score_list)
-    print false_pos_rt
+            FP_array[i] = [gap_init, gap_ext, false_pos_rt]
+            i=i+1
+    print FP_array
     #print np.percentile(score_list, 70)
     #RWFile.writecsv(score_list, home, seq_list_name+subMatrixFile+'score_list.txt')
     return 'done'
