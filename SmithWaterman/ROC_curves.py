@@ -50,9 +50,8 @@ def main():
     subMatrixFile = sys.argv[4]
     subMatrixFile_list = ['BLOSUM50', 'BLOSUM62', 'MATIO', 'PAM100', 'PAM250']
     gap_init = 13
-    gap_ext = 2
+    gap_ext = 3
     [sub_Matrix, origSubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile)
-    
     
     # for testing different scoring matrices
 
