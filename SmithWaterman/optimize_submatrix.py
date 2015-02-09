@@ -38,12 +38,14 @@ def obj_function(pos_scores, neg_scores):
     obj_fnc_val=0
     for FPrate in range(0,40,10):
         TPrate = ROC.true_pos_rate(pos_scores, neg_scores, FPrate)
-        obj_fnc_val = obj_fnc_val + TPrate/100
+        print TPrate
+        obj_fnc_val = obj_fnc_val + TPrate
     return obj_fnc_val
-def generate_newsubMatrix(origsubMatrix):
+def generate_newsubMatrix(origsubMatrix, gap_init, gap_ext):
     
     
-    newsubMatrix = 0
+    newsubMatrix = origsubMatrix
+    newsubMatrix [23,23] = -gap_ext
     return newsubMatrix
 def main():
     if len(sys.argv)>5:
@@ -69,12 +71,13 @@ def main():
     [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
     
     np.save(home+'neg_align_array', neg_align_array )
-    
+    #origSubMatrix = generate_newsubMatrix(origSubMatrix, gap_init, gap_ext)
     neg_align_array=np.load(home+'neg_align_array.npy')
     pos_align_array=np.load(home+'pos_align_array.npy')
     [new_pos_scores, new_neg_scores] = calc_new_scores(pos_align_array, neg_align_array, origSubMatrix)
-    
-    obj_func = obj_function(new_pos_scores, new_neg_scores)
+    print new_pos_scores
+    print new_neg_scores
+    obj_func = obj_function(pos_scores, neg_scores)
     print obj_func
     print 'done'
     

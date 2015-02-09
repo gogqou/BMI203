@@ -81,24 +81,27 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
     newseq1=newseq1+seq2[j]
     newseq2=newseq2+seq2[j]
     score = H[i,j]
-    
+    gapcount = 0
     while H[i,j]>0:
         ind1=str(i)
         ind2=str(j)
         
         if pointers[ind1+ind2] is 'left':
-            j = j-1
+            #print 'left'
             seq=seq+seq2[j]
             newseq2 = newseq2 + seq2[j]
             newseq1 = newseq1+'-'
+            gapcount = gapcount+1
+            j = j-1
         elif pointers[ind1+ind2] is 'up':
-            i = i-1
+            #print 'up'
             seq=seq+seq1[i]
             newseq1 = newseq1 + seq1[i]
             newseq2 = newseq2+'-'
-        else: 
+            gapcount = gapcount+1
             i = i-1
-            j = j-1
+        else: 
+            #print 'diag'
             seq=seq+seq1[i]
             newseq1=newseq1+seq1[i]
             newseq2=newseq2+seq2[j]
@@ -107,12 +110,15 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             #only necessary in a match because in other cases, the cost is just gap initiation or extension
             #at these same indices, increment count of the times that that score was used
             
-            matchscore_dict= C[seq1[i+1]+seq2[j+1]]
+            matchscore_dict= C[seq1[i]+seq2[j]]
             count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
+            i = i-1
+            j = j-1
     seq=seq[::-1]
     newseq1=newseq1[::-1]
     newseq2=newseq2[::-1]
-    H[start,end]=0
+    count_array[23,23] = gapcount
+    #H[start,end]=0
     # to test ROC, average by minimum len of the compared pair
     #score = score/min(len(seq1), len(seq2))
     return seq, newseq1, newseq2, H, score, count_array
