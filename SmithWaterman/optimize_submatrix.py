@@ -78,36 +78,38 @@ def optimization(priority_list, origsubMatrix, pos_align, neg_align, delta, epsi
     #max_itr = maximum iterations to run if epsilon condition never reached
     bestsubMatrix = origsubMatrix
     [new_pos_scores, new_neg_scores] = calc_new_scores(pos_align, neg_align, origsubMatrix)
-    print priority_list[0]
     best_obj_func = obj_function(new_pos_scores, new_neg_scores)
     itr = 0
     #while 4-best_obj_func >epsilon and itr<max_itr:
-    for i in range(0,len(priority_list)):
-        print i
-        for newval in range(-12,20, delta):
-            print newval
-            newMatrix = newsubMatrix(newval, priority_list[i], bestsubMatrix)
-        
-            [new_pos_scores, new_neg_scores] = calc_new_scores(pos_align, neg_align, origsubMatrix)
+    for i in range(0,2):
+        #print i
+        for newval in range(-200,200, delta):
+            #print newval
+            newMatrix= newsubMatrix(newval, priority_list[i], bestsubMatrix)
+            
+            [new_pos_scores, new_neg_scores] = calc_new_scores(pos_align, neg_align, newMatrix)
             old_best_obj_func = best_obj_func
-            print old_best_obj_func
+            #print 'old', old_best_obj_func
+            #print 'new', obj_function(new_pos_scores, new_neg_scores)
             best_obj_func = max(best_obj_func, obj_function(new_pos_scores, new_neg_scores))
-            print 'obj', best_obj_func
+            #print 'obj', best_obj_func
+            eps = best_obj_func-old_best_obj_func
+            #print 'eps', eps
             #delta = delta*(old_best_obj_func-obj_function(new_pos_scores, new_neg_scores))
             #print 'delta', delta
             #itr = itr+1
             #print 'itr', itr
-            if best_obj_func>old_best_obj_func:
-                bestsubMatrix = newMatrix
+            if eps>0.0:
+                bestsubMatrix = newMatrix.copy()
     return bestsubMatrix
 
 
 
-def newsubMatrix(newval, index, subMatrix):
-    
-    subMatrix[index[0], index[1]] = newval
-    subMatrix[index[1], index[0]] = newval
-    return subMatrix
+def newsubMatrix(newval, index, inputMatrix):
+    newMatrix = inputMatrix.copy()
+    newMatrix[index[0], index[1]] = newval
+    newMatrix[index[1], index[0]] = newval
+    return newMatrix
 def main():
     if len(sys.argv)>5:
         print 'provide positive and negative pairs of sequences to align, directory, and substitution matrix choice '
@@ -142,6 +144,8 @@ def main():
     priority_list = priority_pos_neg(pos_align_array, neg_align_array)
     bestMatrix = optimization(priority_list, origSubMatrix, pos_align_array, neg_align_array, 1, .3, 10)
     print bestMatrix
+    print type(bestMatrix)
+    np.ndarray.tofile(bestMatrix, 'bestMatrix.txt', sep= ' ')
 #     print pos_align_array[1,:]
 #     print new_pos_scores
 #     print new_neg_scores
