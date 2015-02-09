@@ -81,9 +81,9 @@ def optimization(priority_list, origsubMatrix, pos_align, neg_align, delta, epsi
     best_obj_func = obj_function(new_pos_scores, new_neg_scores)
     itr = 0
     #while 4-best_obj_func >epsilon and itr<max_itr:
-    for i in range(0,2):
-        #print i
-        for newval in range(-200,200, delta):
+    for i in range(0,len(priority_list)):
+        print i
+        for newval in range(-50,50, 4):
             #print newval
             newMatrix= newsubMatrix(newval, priority_list[i], bestsubMatrix)
             
@@ -100,8 +100,10 @@ def optimization(priority_list, origsubMatrix, pos_align, neg_align, delta, epsi
             #itr = itr+1
             #print 'itr', itr
             if eps>0.0:
+                'yes'
                 bestsubMatrix = newMatrix.copy()
-    return bestsubMatrix
+    
+    return bestsubMatrix, best_obj_func
 
 
 
@@ -128,24 +130,24 @@ def main():
     
     [sub_Matrixdict, origSubMatrix] = subMdict.mk_dict(home+subMatrixFile)
 
-    [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
-#     
-#     np.save(home+'pos_align_array', pos_align_array)
-#     np.save(home+'pos_scores', pos_scores )
-    [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
-#     np.save(home+'neg_align_array', neg_align_array )
-#     np.save(home+'neg_scores', neg_scores )
+    #[pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
+     
+    #np.save(home+'pos_align_array', pos_align_array)
+    #np.save(home+'pos_scores', pos_scores )
+    #[neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
+    #np.save(home+'neg_align_array', neg_align_array )
+    #np.save(home+'neg_scores', neg_scores )
     #origSubMatrix = generate_newsubMatrix(origSubMatrix, gap_init, gap_ext)
     neg_align_array=np.load(home+'neg_align_array.npy')
-    neg_scores=np.load(home+'neg_scores.npy')
+    #neg_scores=np.load(home+'neg_scores.npy')
     pos_align_array=np.load(home+'pos_align_array.npy')
-    pos_scores=np.load(home+'pos_scores.npy')
-    [new_pos_scores, new_neg_scores] = calc_new_scores(pos_align_array, neg_align_array, origSubMatrix)
+    #pos_scores=np.load(home+'pos_scores.npy')
+    #[new_pos_scores, new_neg_scores] = calc_new_scores(pos_align_array, neg_align_array, origSubMatrix)
     priority_list = priority_pos_neg(pos_align_array, neg_align_array)
-    bestMatrix = optimization(priority_list, origSubMatrix, pos_align_array, neg_align_array, 1, .3, 10)
+    [bestMatrix, best_obj_func] = optimization(priority_list, origSubMatrix, pos_align_array, neg_align_array, 1, .3, 10)
     print bestMatrix
-    print type(bestMatrix)
-    np.ndarray.tofile(bestMatrix, 'bestMatrix.txt', sep= ' ')
+    print best_obj_func
+    np.save(home+'bestMatrix',bestMatrix)
 #     print pos_align_array[1,:]
 #     print new_pos_scores
 #     print new_neg_scores
