@@ -65,17 +65,17 @@ def main():
     
     [sub_Matrixdict, origSubMatrix] = subMdict.mk_dict(home+subMatrixFile)
 
-    [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
-    [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
-    RWFile.writetxt(pos_align_array, home, 'pos_align_array.txt')
-    RWFile.writetxt(neg_align_array, home, 'neg_align_array.txt')
+    #[pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
+    #[neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
+    #RWFile.writetxt(pos_align_array, home, 'pos_align_array.txt')
+    #RWFile.writetxt(neg_align_array, home, 'neg_align_array.txt')
     
-    temp=np.genfromtxt(home+'neg_align_array.txt', comments="#",  unpack=False)
-    print neg_align_array
-    print temp
+    neg_align_array=np.genfromtxt(home+'neg_align_array.txt', comments="#",  unpack=False)
+    pos_align_array=np.genfromtxt(home+'pos_align_array.txt', comments="#",  unpack=False)
+    print pos_align_array
     [new_pos_scores, new_neg_scores] = calc_new_scores(pos_align_array, neg_align_array, origSubMatrix)
     print new_pos_scores
-    
+    print new_neg_scores
     
     print 'done'
     
