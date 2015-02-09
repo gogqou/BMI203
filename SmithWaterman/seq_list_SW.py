@@ -25,6 +25,7 @@ def SW_one_round(seq1, seq2, sub_Matrix, origSubMatrix, gap_init, gap_ext):
     #print fitted_seq1
     #print fitted_seq2
     #print 'score = ', score
+    #print count_array
     
     return score, count_array
 def list_of_sequences_from_txt(sequence_list_file):
@@ -39,7 +40,7 @@ def scores_from_seq_list(home,seq_list_file,sub_Matrix, origSubMatrix, gap_init,
     print seq_list
     score_list = np.zeros([len(seq_list),1])
     #has the count array for each pairing in the sequence list
-    alignment_array = np.zeros([100,24,24])
+    alignment_array = np.zeros([len(seq_list),24,24])
     for i in range(0,len(seq_list)):
         seq_locations = seq_list[i]
         seqfile1=seq_locations[0]
@@ -49,6 +50,7 @@ def scores_from_seq_list(home,seq_list_file,sub_Matrix, origSubMatrix, gap_init,
         [score, count_array] = SW_one_round(seq1, seq2, sub_Matrix,origSubMatrix, gap_init, gap_ext)
         score_list[i] = score
         alignment_array[i] = count_array
+        
     return score_list, alignment_array
 
 
@@ -76,7 +78,7 @@ def graph_cost_array():
     plt.show()
     return 1
 
-'''
+
 def main():
     if len(sys.argv)>5:
         print 'provide positive and negative pairs of sequences to align, directory, and substitution matrix choice '
@@ -88,7 +90,7 @@ def main():
     neg_seq_list_file = home+neg_seq_list_name+'.txt'
     subMatrixFile = sys.argv[4]
     subMatrixFile_list = ['BLOSUM50', 'BLOSUM62', 'MATIO', 'PAM100', 'PAM250']
-    FP_array = []
+    FP_array = np.zeros([120,3])
     i=0
     #gap_init_cost, gap_ext_cost
     [sub_Matrix, origSubMatrix] = subMdict.mk_dict(home+subMatrixFile)
@@ -99,16 +101,17 @@ def main():
     for gap_init in range(1,21):
         for gap_ext in range(1,6):
             
-            pos_score_list = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix,origSubMatrix, gap_init, gap_ext)
-            neg_score_list = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix,origSubMatrix gap_init, gap_ext)
+            [pos_score_list, pos_alignment_array] = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix,origSubMatrix, gap_init, gap_ext)
+            [neg_score_list, neg_alignment_array] = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix,origSubMatrix, gap_init, gap_ext)
             
             false_pos_rt= false_pos_rate(pos_score_list, neg_score_list)
             FP_array[i] = [gap_init, gap_ext, false_pos_rt]
             i=i+1
         
-     
-    #graph_cost_array()
-
+    print FP_array
+    RWFile.writetxt(FP_array, home, 'FPrate SubMatrices.txt')
+    graph_cost_array()
+    '''
     
     # for testing input matrices
     for i in range(0,len(subMatrixFile_list)):
@@ -123,10 +126,9 @@ def main():
     RWFile.writetxt(FP_array, home, 'FPrate SubMatrices'+'Init9 Ext 3'+'.txt')
   
             
-          
+    '''          
             
             
-    return 'done'
+    print 'done'
 if __name__ == '__main__':
     main()
-    '''

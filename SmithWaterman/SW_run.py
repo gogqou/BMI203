@@ -82,11 +82,6 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
     newseq2=newseq2+seq2[j]
     score = H[i,j]
     
-    #finds the AAtoAA comparison in the dictionary
-    #2nd and 3rd entries are the indices in the original substitution matrix
-    matchscore_dict= C[seq1[i]+seq2[j]]
-    #at these same indices, increment count of the times that that score was used
-    count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
     while H[i,j]>0:
         ind1=str(i)
         ind2=str(j)
@@ -96,22 +91,23 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             seq=seq+seq2[j]
             newseq2 = newseq2 + seq2[j]
             newseq1 = newseq1+'-'
-            score = score+ H[i,j]
         elif pointers[ind1+ind2] is 'up':
             i = i-1
             seq=seq+seq1[i]
             newseq1 = newseq1 + seq1[i]
             newseq2 = newseq2+'-'
-            score = score+ H[i,j]
         else: 
             i = i-1
             j = j-1
             seq=seq+seq1[i]
             newseq1=newseq1+seq1[i]
             newseq2=newseq2+seq2[j]
-            score = score+ H[i,j]
+            #finds the AAtoAA comparison in the dictionary
+            #2nd and 3rd entries are the indices in the original substitution matrix
             #only necessary in a match because in other cases, the cost is just gap initiation or extension
-            matchscore_dict= C[seq1[i]+seq2[j]]
+            #at these same indices, increment count of the times that that score was used
+            
+            matchscore_dict= C[seq1[i+1]+seq2[j+1]]
             count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
     seq=seq[::-1]
     newseq1=newseq1[::-1]
