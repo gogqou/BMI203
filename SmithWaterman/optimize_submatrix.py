@@ -43,8 +43,8 @@ def obj_function(pos_scores, neg_scores):
     return obj_fnc_val
 def generate_newsubMatrix(origsubMatrix, gap_init, gap_ext):
     
-    newsubMatrix = origsubMatrix
-    newsubMatrix[0,23]=-gap_init
+    newsubMatrix = origsubMatrix.copy()
+    newsubMatrix[0,23]=gap_init
     newsubMatrix [23,23] = -gap_ext
     return newsubMatrix
 
@@ -128,26 +128,49 @@ def main():
     gap_init = 13
     gap_ext = 2
     
-    [sub_Matrixdict, origSubMatrix] = subMdict.mk_dict(home+subMatrixFile)
+    [sub_Matrixdict, origSubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile)
 
-    #[pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
+    [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
      
-    #np.save(home+'pos_align_array', pos_align_array)
-    #np.save(home+'pos_scores', pos_scores )
-    #[neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
-    #np.save(home+'neg_align_array', neg_align_array )
-    #np.save(home+'neg_scores', neg_scores )
-    #origSubMatrix = generate_newsubMatrix(origSubMatrix, gap_init, gap_ext)
-    neg_align_array=np.load(home+'neg_align_array.npy')
+    np.save(home+'pos_align_array', pos_align_array)
+    np.save(home+'pos_scores', pos_scores )
+    [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
+    np.save(home+'neg_align_array', neg_align_array )
+    np.save(home+'neg_scores', neg_scores )
+    origSubMatrix = generate_newsubMatrix(origSubMatrix, gap_init, gap_ext)
+    
+    print 'pos', np.transpose(pos_scores)
+    print 'neg', np.transpose(neg_scores)
+    obf = obj_function(pos_scores, neg_scores)
+    print obf
+    #if already saved versions and made no changes to SW_run and seq_list_SW: just load from saved npy files
+    #neg_align_array=np.load(home+'neg_align_array.npy')
     #neg_scores=np.load(home+'neg_scores.npy')
-    pos_align_array=np.load(home+'pos_align_array.npy')
+    #pos_align_array=np.load(home+'pos_align_array.npy')
     #pos_scores=np.load(home+'pos_scores.npy')
-    #[new_pos_scores, new_neg_scores] = calc_new_scores(pos_align_array, neg_align_array, origSubMatrix)
-    priority_list = priority_pos_neg(pos_align_array, neg_align_array)
-    [bestMatrix, best_obj_func] = optimization(priority_list, origSubMatrix, pos_align_array, neg_align_array, 1, .3, 10)
-    print bestMatrix
-    print best_obj_func
-    np.save(home+'bestMatrix',bestMatrix)
+    [new_pos_scores, new_neg_scores] = calc_new_scores(pos_align_array, neg_align_array, origSubMatrix)
+    print 'pos', new_pos_scores
+    print 'neg', new_neg_scores
+
+    obf = obj_function(new_pos_scores, new_neg_scores)
+    print obf
+    #generate priority of values in the scoring matrix to change
+    #priority_list = priority_pos_neg(pos_align_array, neg_align_array)
+    
+    #optimize using obj func calculation and output best performing matrix
+    #[bestMatrix, best_obj_func] = optimization(priority_list, origSubMatrix, pos_align_array, neg_align_array, 1, .3, 10)
+    #print bestMatrix
+    #print best_obj_func
+    #np.save(home+'bestMatrix',bestMatrix)
+    
+    #try out new optimized matrix
+    #optimized_Matrix = np.load(home+'bestMatrix.npy')
+    #[optimized_subMatrix_dict, newSubMatrix, AAlist] = subMdict.mk_dict_np(home+'bestMatrix.npy', AAlist)
+    #print optimized_subMatrix_dict
+    #print len(optimized_subMatrix_dict.keys())
+    #print np.transpose(optimized_subMatrix_dict.keys())
+    #[pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
+    #[neg_scores,neg_align_array] = slSW.scores_from_seq_list(home, neg_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
 #     print pos_align_array[1,:]
 #     print new_pos_scores
 #     print new_neg_scores

@@ -11,6 +11,7 @@ import readwrite_file as rwF
 
 from numpy import genfromtxt
 import re
+import numpy as np
 def mk_dict(inputFile):
     
     sub_dict = {}
@@ -28,4 +29,15 @@ def mk_dict(inputFile):
     for i in range(AArange):
         for j in range(AArange):
             sub_dict[AAlist[i]+AAlist[j]] = [submatrixVals[i,j], i, j]
-    return sub_dict, submatrixVals
+    return sub_dict, submatrixVals, AAlist
+
+def mk_dict_np(inputFile, AAlist):
+    AArange = len(AAlist)
+    optimized_Matrix = np.load(inputFile)
+    sub_dict = {}
+    for i in range(AArange):
+        for j in range(AArange):
+            sub_dict[AAlist[i]+AAlist[j]] = [optimized_Matrix[i,j], i, j]
+    return sub_dict, optimized_Matrix, AAlist
+    
+    

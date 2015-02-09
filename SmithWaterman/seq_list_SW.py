@@ -18,12 +18,12 @@ from mpl_toolkits.mplot3d import axes3d
 def SW_one_round(seq1, seq2, sub_Matrix, origSubMatrix, gap_init, gap_ext):
     
     [sim_Matrix, pointers] = SW.similarity_matrix(seq1,seq2, sub_Matrix, gap_init, gap_ext)
-    
+
     [aligned_sequence, fitted_seq1, fitted_seq2, sim_Matrix, score, count_array] = SW.trace_aligned_seq(seq1, seq2, sim_Matrix, pointers, origSubMatrix, sub_Matrix)
 
     #print aligned_sequence
-    #print fitted_seq1
-    #print fitted_seq2
+    print fitted_seq1
+    print fitted_seq2
     #print 'score = ', score
     #print count_array
     
@@ -94,7 +94,7 @@ def main():
     FP_array = []
     i=0
     #gap_init_cost, gap_ext_cost
-    [sub_Matrix, origSubMatrix] = subMdict.mk_dict(home+subMatrixFile)
+    [sub_Matrix, origSubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile)
     
     '''
     #for testing gap costs

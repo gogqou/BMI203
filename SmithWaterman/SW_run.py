@@ -92,7 +92,7 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             newseq1 = newseq1+'-'
             j = j-1
             
-            if pointers[ind1+str(j)] is 'diagonal':           
+            if H[i,j]>0 and pointers[ind1+str(j)] is 'diagonal':           
                 gap_open = gap_open +1
             else:
                 
@@ -103,7 +103,7 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             newseq1 = newseq1 + seq1[i]
             newseq2 = newseq2+'-'
             i = i-1
-            if pointers[str(i)+ind2] is 'diagonal':            
+            if H[i,j]>0 and pointers[str(i)+ind2] is 'diagonal':            
                 gap_open = gap_open +1
             else:
                 gapcount = gapcount+1
@@ -125,8 +125,8 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
     newseq1=newseq1[::-1]
     newseq2=newseq2[::-1]
     
-    #count_array[0,23] = gap_open
-    #count_array[23,23]=gapcount
+    count_array[0,23] = gap_open
+    count_array[23,23]=gapcount
     #H[start,end]=0
     # to test ROC, average by minimum len of the compared pair
     #score = score/min(len(seq1), len(seq2))
