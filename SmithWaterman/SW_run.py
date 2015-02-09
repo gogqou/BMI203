@@ -129,6 +129,6 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
     count_array[23,23]=gapcount
     #H[start,end]=0
     # to test ROC, average by minimum len of the compared pair
-    #score = score/min(len(seq1), len(seq2))
+    score = score/min(len(seq1), len(seq2))
     return seq, newseq1, newseq2, H, score, count_array
 
