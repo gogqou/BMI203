@@ -49,7 +49,7 @@ def main():
     neg_seq_list_file = home+neg_seq_list_name+'.txt'
     subMatrixFile = sys.argv[4]
     subMatrixFile_list = ['BLOSUM50', 'BLOSUM62', 'MATIO', 'PAM100', 'PAM250']
-    gap_init = 11
+    gap_init = 13
     gap_ext = 2
     [sub_Matrix, origSubMatrix] = subMdict.mk_dict(home+subMatrixFile)
     

@@ -90,12 +90,13 @@ def main():
     neg_seq_list_file = home+neg_seq_list_name+'.txt'
     subMatrixFile = sys.argv[4]
     subMatrixFile_list = ['BLOSUM50', 'BLOSUM62', 'MATIO', 'PAM100', 'PAM250']
-    FP_array = np.zeros([120,3])
+    #FP_array = np.zeros([120,3])
+    FP_array = []
     i=0
     #gap_init_cost, gap_ext_cost
     [sub_Matrix, origSubMatrix] = subMdict.mk_dict(home+subMatrixFile)
     
-    
+    '''
     #for testing gap costs
     
     for gap_init in range(1,21):
@@ -117,16 +118,15 @@ def main():
     for i in range(0,len(subMatrixFile_list)):
         [sub_Matrix, origsubMatrix] = subMdict.mk_dict(home+subMatrixFile_list[i])
     
-        pos_score_list = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix, origSubMatrix, 9, 3)
-        neg_score_list = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix, origSubMatrix, 9, 3)
+        [pos_score_list, pos_alignment_array] = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix, origSubMatrix,13, 2)
+        [neg_score_list, neg_alignment_array] = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix, origSubMatrix, 13, 2)
         false_pos_rt= false_pos_rate(pos_score_list, neg_score_list)
         FP_array.append([subMatrixFile_list[i], false_pos_rt])
         
     print FP_array
-    RWFile.writetxt(FP_array, home, 'FPrate SubMatrices'+'Init9 Ext 3'+'.txt')
   
             
-    '''          
+          
             
             
     print 'done'

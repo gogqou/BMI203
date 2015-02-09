@@ -58,7 +58,7 @@ def main():
     
     subMatrixFile = sys.argv[4]
     
-    gap_init = 11
+    gap_init = 13
     gap_ext = 2
     
     [sub_Matrixdict, origSubMatrix] = subMdict.mk_dict(home+subMatrixFile)
