@@ -49,8 +49,6 @@ def generate_newsubMatrix(origsubMatrix, gap_init, gap_ext):
     newsubMatrix [23,23] = -gap_ext
     return newsubMatrix
 
-
-
 def priority_pos_neg(pos_align_array, neg_align_array):
     sum_pos = np.zeros([24,24])
     sum_neg = np.zeros([24,24])
@@ -59,13 +57,17 @@ def priority_pos_neg(pos_align_array, neg_align_array):
     for j in range(0,len(neg_align_array)):
         sum_neg = sum_neg+neg_align_array [i]
     cumulative = sum_pos-sum_neg
-    indices = np.unravel_index(cumulative.argmax(), cumulative.shape)
-    print indices
-    
-    nonzero = np.transpose(np.ndarray.nonzero(cumulative))
-    print nonzero
-    cumulative.argsort()[-3:][::-1]
-    
+    abs_cumul=np.absolute(cumulative)
+    priority_list = []
+    max = 1
+    while max>0:
+            
+        max_indices = np.unravel_index(abs_cumul.argmax(), abs_cumul.shape)
+        
+        priority_list.append(max_indices)
+        max=abs_cumul[max_indices]
+        abs_cumul[max_indices]=0
+    return priority_list
 def main():
     if len(sys.argv)>5:
         print 'provide positive and negative pairs of sequences to align, directory, and substitution matrix choice '
