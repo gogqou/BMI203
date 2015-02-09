@@ -46,7 +46,8 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary, gap_init, gap_ex
             #gap in seq1; if gap=1, then there was already a gap started, no gap_init cost
                        
             #if gap = 0, then choosing either left or up requires starting a gap, multiplying -1 by the gap_init cost means subtracting it
-            diagonal = H[i-1,j-1]+C[seq1[i]+seq2[j]] #match
+            matchscore_dict= C[seq1[i]+seq2[j]] #necessary because the value associated with this key includes the score as well as the index in the original scoring matrix
+            diagonal = H[i-1,j-1]+matchscore_dict[0] #match
             
             H[i,j] = max(left, up, diagonal, 0) 
             
@@ -64,12 +65,14 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary, gap_init, gap_ex
             
     return H, pointers
 
-def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers):
+def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, subMatrixdict):
     H=similarity_matrix
+    C = subMatrixdict # for easier typing later on
     seq = ''
     newseq1 = ''
     newseq2= ''
     indices = np.unravel_index(H.argmax(), H.shape)
+    count_array = np.zeros(origsubMatrix.shape)
     i = indices[0]
     j = indices[1]
     start=i
@@ -78,6 +81,12 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers):
     newseq1=newseq1+seq2[j]
     newseq2=newseq2+seq2[j]
     score = H[i,j]
+    
+    #finds the AAtoAA comparison in the dictionary
+    #2nd and 3rd entries are the indices in the original substitution matrix
+    matchscore_dict= C[seq1[i]+seq2[j]]
+    #at these same indices, increment count of the times that that score was used
+    count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
     while H[i,j]>0:
         ind1=str(i)
         ind2=str(j)
@@ -101,11 +110,14 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers):
             newseq1=newseq1+seq1[i]
             newseq2=newseq2+seq2[j]
             score = score+ H[i,j]
+            #only necessary in a match because in other cases, the cost is just gap initiation or extension
+            matchscore_dict= C[seq1[i]+seq2[j]]
+            count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
     seq=seq[::-1]
     newseq1=newseq1[::-1]
     newseq2=newseq2[::-1]
     H[start,end]=0
     # to test ROC, average by minimum len of the compared pair
     #score = score/min(len(seq1), len(seq2))
-    return seq, newseq1, newseq2, H, score
+    return seq, newseq1, newseq2, H, score, count_array
 

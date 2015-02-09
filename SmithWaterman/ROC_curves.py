@@ -45,21 +45,21 @@ def main():
     subMatrixFile_list = ['BLOSUM50', 'BLOSUM62', 'MATIO', 'PAM100', 'PAM250']
     gap_init = 11
     gap_ext = 2
-    sub_Matrix = subMdict.mk_dict(home+subMatrixFile)
+    [sub_Matrix, origSubMatrix] = subMdict.mk_dict(home+subMatrixFile)
     
     
     # for testing different scoring matrices
     '''
     for i in range(0,len(subMatrixFile_list)):
-        sub_Matrix = subMdict.mk_dict(home+subMatrixFile_list[i]) 
-        pos_scores = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrix, gap_init, gap_ext)
-        neg_scores= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrix, gap_init, gap_ext)
+        [sub_Matrix, origsubMatrix] = subMdict.mk_dict(home+subMatrixFile_list[i]) 
+        [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrix, gap_init, gap_ext)
+        [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrix, gap_init, gap_ext)
         ROC_array = ROC_graph(pos_scores, neg_scores, home, subMatrixFile_list[i])
         pylab.plot(ROC_array[:,1], ROC_array[:,0]/100, label = subMatrixFile_list[i])
   
       '''  
-    pos_scores = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrix, gap_init, gap_ext)
-    neg_scores= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrix, gap_init, gap_ext)
+    [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrix, origSubMatrix, gap_init, gap_ext)
+    [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrix, origSubMatrix, gap_init, gap_ext)
     ROC_array = ROC_graph(pos_scores, neg_scores,)
     pylab.plot(ROC_array[:,1], ROC_array[:,0]/100, label = subMatrixFile)
     pylab.axis([0,1,0,1])

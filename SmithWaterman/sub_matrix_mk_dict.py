@@ -27,5 +27,5 @@ def mk_dict(inputFile):
     AArange=len(AAlist)
     for i in range(AArange):
         for j in range(AArange):
-            sub_dict[AAlist[i]+AAlist[j]] = submatrixVals[i,j]
-    return sub_dict
+            sub_dict[AAlist[i]+AAlist[j]] = [submatrixVals[i,j], i, j]
+    return sub_dict, submatrixVals

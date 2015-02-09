@@ -15,17 +15,18 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import axes3d
 
-def SW_one_round(seq1, seq2, sub_Matrix, gap_init, gap_ext):
+def SW_one_round(seq1, seq2, sub_Matrix, origSubMatrix, gap_init, gap_ext):
     
     [sim_Matrix, pointers] = SW.similarity_matrix(seq1,seq2, sub_Matrix, gap_init, gap_ext)
     
-    [aligned_sequence, fitted_seq1, fitted_seq2, sim_Matrix, score] = SW.trace_aligned_seq(seq1, seq2, sim_Matrix, pointers)
+    [aligned_sequence, fitted_seq1, fitted_seq2, sim_Matrix, score, count_array] = SW.trace_aligned_seq(seq1, seq2, sim_Matrix, pointers, origSubMatrix, sub_Matrix)
+
     #print aligned_sequence
     #print fitted_seq1
     #print fitted_seq2
     #print 'score = ', score
     
-    return score
+    return score, count_array
 def list_of_sequences_from_txt(sequence_list_file):
     seq_list = []
     lines = RWFile.readtxt(sequence_list_file)
@@ -33,20 +34,22 @@ def list_of_sequences_from_txt(sequence_list_file):
         seq_list.append(line.split(' '))
     return seq_list
 
-def scores_from_seq_list(home,seq_list_file,sub_Matrix, gap_init, gap_ext):
+def scores_from_seq_list(home,seq_list_file,sub_Matrix, origSubMatrix, gap_init, gap_ext):
     seq_list = list_of_sequences_from_txt(seq_list_file)
     print seq_list
     score_list = np.zeros([len(seq_list),1])
+    #has the count array for each pairing in the sequence list
+    alignment_array = np.zeros([100,24,24])
     for i in range(0,len(seq_list)):
         seq_locations = seq_list[i]
         seqfile1=seq_locations[0]
         seqfile2=seq_locations[1]
         seq1=rFasta.read_fa(home+seqfile1)
         seq2=rFasta.read_fa(home+seqfile2)
-        score = SW_one_round(seq1, seq2, sub_Matrix, gap_init, gap_ext)
+        [score, count_array] = SW_one_round(seq1, seq2, sub_Matrix,origSubMatrix, gap_init, gap_ext)
         score_list[i] = score
-        
-    return score_list
+        alignment_array[i] = count_array
+    return score_list, alignment_array
 
 
 def false_pos_rate(pos_score_list, neg_score_list):
@@ -88,7 +91,7 @@ def main():
     FP_array = []
     i=0
     #gap_init_cost, gap_ext_cost
-    sub_Matrix = subMdict.mk_dict(home+subMatrixFile)
+    [sub_Matrix, origSubMatrix] = subMdict.mk_dict(home+subMatrixFile)
     
     
     #for testing gap costs
@@ -96,8 +99,8 @@ def main():
     for gap_init in range(1,21):
         for gap_ext in range(1,6):
             
-            pos_score_list = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix, gap_init, gap_ext)
-            neg_score_list = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix, gap_init, gap_ext)
+            pos_score_list = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix,origSubMatrix, gap_init, gap_ext)
+            neg_score_list = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix,origSubMatrix gap_init, gap_ext)
             
             false_pos_rt= false_pos_rate(pos_score_list, neg_score_list)
             FP_array[i] = [gap_init, gap_ext, false_pos_rt]
@@ -109,10 +112,10 @@ def main():
     
     # for testing input matrices
     for i in range(0,len(subMatrixFile_list)):
-        sub_Matrix = subMdict.mk_dict(home+subMatrixFile_list[i])
+        [sub_Matrix, origsubMatrix] = subMdict.mk_dict(home+subMatrixFile_list[i])
     
-        pos_score_list = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix, 9, 3)
-        neg_score_list = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix, 9, 3)
+        pos_score_list = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix, origSubMatrix, 9, 3)
+        neg_score_list = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix, origSubMatrix, 9, 3)
         false_pos_rt= false_pos_rate(pos_score_list, neg_score_list)
         FP_array.append([subMatrixFile_list[i], false_pos_rt])
         
