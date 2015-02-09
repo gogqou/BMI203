@@ -24,6 +24,12 @@ def false_pos_rate(pos_score_list, neg_score_list, TPrate):
     above_threshold= [k for k in neg_score_list if k>=percentile_pos_scores]
     false_pos_rate = len(above_threshold)/float(len(neg_score_list))
     return false_pos_rate
+
+def true_pos_rate(pos_score_list, neg_score_list, FPrate):
+    percentile_neg_scores = np.percentile(pos_score_list, 100-FPrate)
+    above_threshold= [k for k in neg_score_list if k>=percentile_neg_scores]
+    true_pos_rate = len(above_threshold)/float(len(neg_score_list))
+    return true_pos_rate
 def ROC_graph(pos_scores, neg_scores):
     ROC_array = np.zeros([50,2])
     i = 0

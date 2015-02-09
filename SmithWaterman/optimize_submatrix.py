@@ -24,8 +24,24 @@ from matplotlib import cm
 from mpl_toolkits.mplot3d import axes3d
 import seq_list_SW as slSW
 import pylab
+import ROC_curves as ROC
+def obj_function(pos_scores, neg_scores):
+    obj_fnc_val=0
+    for FPrate in range(0,40,10):
+        TPrate = ROC.true_pos_rate(pos_scores, neg_scores, FPrate)
+        obj_fnc_val = obj_fnc_val + TPrate/100
+    return obj_fnc_val
+def calc_new_scores(pos_align_array,neg_align_array, subMatrix):
+    new_pos_scores=np.zeros(len(pos_align_array))
+    new_neg_scores=np.zeros(len(neg_align_array))
+    return new_pos_scores, new_neg_scores
 
 
+def generate_newsubMatrix(origsubMatrix):
+    
+    
+    
+    return newsubMatrix
 def main():
     if len(sys.argv)>5:
         print 'provide positive and negative pairs of sequences to align, directory, and substitution matrix choice '
@@ -38,10 +54,10 @@ def main():
     subMatrixFile = sys.argv[4]
     gap_init = 11
     gap_ext = 2
-    [sub_Matrix, origSubMatrix] = subMdict.mk_dict(home+subMatrixFile)
+    [sub_Matrixdict, origSubMatrix] = subMdict.mk_dict(home+subMatrixFile)
 
-    [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrix, origSubMatrix, gap_init, gap_ext)
-    [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrix, origSubMatrix, gap_init, gap_ext)
+    [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
+    [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
 
     print 'done'
     
