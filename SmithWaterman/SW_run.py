@@ -44,7 +44,6 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary, gap_init, gap_ex
             left = H[i-1,j]+(gap-1)*gap_init - gap*gap_ext #gap in seq2
             up=H[i,j-1] +(gap-1)*gap_init - gap*gap_ext 
             #gap in seq1; if gap=1, then there was already a gap started, no gap_init cost
-                       
             #if gap = 0, then choosing either left or up requires starting a gap, multiplying -1 by the gap_init cost means subtracting it
             matchscore_dict= C[seq1[i]+seq2[j]] #necessary because the value associated with this key includes the score as well as the index in the original scoring matrix
             diagonal = H[i-1,j-1]+matchscore_dict[0] #match
@@ -82,24 +81,32 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
     newseq2=newseq2+seq2[j]
     score = H[i,j]
     gapcount = 0
+    gap_open = 0
     while H[i,j]>0:
         ind1=str(i)
         ind2=str(j)
-        
         if pointers[ind1+ind2] is 'left':
             #print 'left'
             seq=seq+seq2[j]
             newseq2 = newseq2 + seq2[j]
             newseq1 = newseq1+'-'
-            gapcount = gapcount+1
             j = j-1
+            
+            if pointers[ind1+str(j)] is 'diagonal':           
+                gap_open = gap_open +1
+            else:
+                
+                gapcount = gapcount+1
         elif pointers[ind1+ind2] is 'up':
             #print 'up'
             seq=seq+seq1[i]
             newseq1 = newseq1 + seq1[i]
             newseq2 = newseq2+'-'
-            gapcount = gapcount+1
             i = i-1
+            if pointers[str(i)+ind2] is 'diagonal':            
+                gap_open = gap_open +1
+            else:
+                gapcount = gapcount+1
         else: 
             #print 'diag'
             seq=seq+seq1[i]
@@ -117,7 +124,9 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
     seq=seq[::-1]
     newseq1=newseq1[::-1]
     newseq2=newseq2[::-1]
-    count_array[23,23] = gapcount
+    
+    #count_array[0,23] = gap_open
+    #count_array[23,23]=gapcount
     #H[start,end]=0
     # to test ROC, average by minimum len of the compared pair
     #score = score/min(len(seq1), len(seq2))
