@@ -44,8 +44,8 @@ def obj_function(pos_scores, neg_scores):
 def generate_newsubMatrix(origsubMatrix, gap_init, gap_ext):
     
     newsubMatrix = origsubMatrix.copy()
-    newsubMatrix[0,23]=gap_init
-    newsubMatrix [23,23] = gap_ext
+    newsubMatrix[0,23]=-gap_init
+    newsubMatrix [23,23] = -gap_ext
     return newsubMatrix
 
 def priority_pos_neg(pos_align_array, neg_align_array):
@@ -129,7 +129,7 @@ def main():
     gap_ext = 3
     
     [sub_Matrixdict, origSubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile)
-    '''
+    
     [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
      
     np.save(home+'pos_align_array', pos_align_array)
@@ -137,14 +137,14 @@ def main():
     [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
     np.save(home+'neg_align_array', neg_align_array )
     np.save(home+'neg_scores', neg_scores )
-    '''
+    
     #origSubMatrix = generate_newsubMatrix(origSubMatrix, gap_init, gap_ext)
-    '''
+    
     print 'pos', np.transpose(pos_scores)
     print 'neg', np.transpose(neg_scores)
     obf = obj_function(pos_scores, neg_scores)
     print obf
-    '''
+    
     #if already saved versions and made no changes to SW_run and seq_list_SW: just load from saved npy files
     neg_align_array=np.load(home+'neg_align_array.npy')
     neg_scores=np.load(home+'neg_scores.npy')
@@ -158,16 +158,16 @@ def main():
     print obf
     #generate priority of values in the scoring matrix to change
     priority_list = priority_pos_neg(pos_align_array, neg_align_array)
-    
+    '''
     #optimize using obj func calculation and output best performing matrix
     [bestMatrix, best_obj_func] = optimization(priority_list, origSubMatrix, pos_align_array, neg_align_array, 1, .3, 10)
     print bestMatrix
     print best_obj_func
     np.save(home+'bestMatrix',bestMatrix)
-    
+    '''
     #try out new optimized matrix
-    optimized_Matrix = np.load(home+'bestMatrix.npy')
-    [optimized_subMatrix_dict, newSubMatrix, AAlist] = subMdict.mk_dict_np(home+'bestMatrix.npy', AAlist)
+    #optimized_Matrix = np.load(home+'bestMatrix.npy')
+    #[optimized_subMatrix_dict, newSubMatrix, AAlist] = subMdict.mk_dict_np(home+'bestMatrix.npy', AAlist)
     #print optimized_subMatrix_dict
     #print len(optimized_subMatrix_dict.keys())
     #print np.transpose(optimized_subMatrix_dict.keys())

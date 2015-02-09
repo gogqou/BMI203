@@ -31,7 +31,7 @@ import read_fasta as rFasta
 def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary, gap_init, gap_ext):
     
     similarity_matrix = np.zeros([len(seq1), len(seq2)]) #initializes similarity matrix with zeros everywhere; will replace all but first row and column
-    H = similarity_matrix
+    H = similarity_matrix.copy()
     C = substitution_Matrix_dictionary # for easier typing later on
     pointers = {} #dictionary to keep pointers of where each space got its value
     gap = 0
@@ -56,16 +56,18 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary, gap_init, gap_ex
             elif H[i,j]== up:
                 pointers[str(i)+str(j)] = 'up'
                 gap = 1
-            else:
+            elif H[i,j]== diagonal:
                 pointers[str(i)+str(j)] = 'diagonal'
                 gap = 0
+            else:
+                pointers[str(i)+str(j)]='0'
             j=j+1 #increment across the matrix
         i=i+1        #then increment down the matrix, so you know all values you need will be available
             
     return H, pointers
 
 def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, subMatrixdict):
-    H=similarity_matrix
+    H=similarity_matrix.copy()
     C = subMatrixdict # for easier typing later on
     seq = ''
     newseq1 = ''
@@ -82,7 +84,7 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
     score = H[i,j]
     gapcount = 0
     gap_open = 0
-    while H[i,j]>0:
+    while H[i,j]>0 and pointers[str(i)+str(j)] is not '0':
         ind1=str(i)
         ind2=str(j)
         if pointers[ind1+ind2] is 'left':
@@ -107,7 +109,7 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
                 gap_open = gap_open +1
             else:
                 gapcount = gapcount+1
-        else: 
+        elif pointers[ind1+ind2] is 'diagonal': 
             #print 'diag'
             seq=seq+seq1[i]
             newseq1=newseq1+seq1[i]
@@ -121,6 +123,9 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
             i = i-1
             j = j-1
+        else: 
+            print 'new alignment'
+            break
     seq=seq[::-1]
     newseq1=newseq1[::-1]
     newseq2=newseq2[::-1]
@@ -129,6 +134,6 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
     count_array[23,23]=gapcount
     #H[start,end]=0
     # to test ROC, average by minimum len of the compared pair
-    score = score/min(len(seq1), len(seq2))
+    #score = score/min(len(seq1), len(seq2))
     return seq, newseq1, newseq2, H, score, count_array
 
