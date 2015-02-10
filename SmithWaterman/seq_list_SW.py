@@ -22,7 +22,7 @@ def SW_one_round(seq1, seq2, sub_Matrix, origSubMatrix, gap_init, gap_ext):
     
     #print fitted_seq1
     #print fitted_seq2
-    
+    #print 'score', score
     return score, count_array
 def list_of_sequences_from_txt(sequence_list_file):
     seq_list = []
@@ -110,7 +110,7 @@ def main():
     np.save(home+'FP_rate Submatrices', FP_array)
     graph_cost_array()
     '''
-    
+    '''
     # for testing input matrices
     for i in range(0,len(subMatrixFile_list)):
         [sub_Matrix, origsubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile_list[i])
@@ -122,9 +122,10 @@ def main():
         
     print FP_array
          
-         
-            
-            
+    '''     
+    gap_init =7
+    gap_ext=3
+    
     print 'done'
 if __name__ == '__main__':
     main()

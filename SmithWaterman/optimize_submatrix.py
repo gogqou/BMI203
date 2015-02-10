@@ -7,16 +7,11 @@ Created on Feb 8, 2015
 start with a static alignment with a given matrix and optimize it against objective function :
 sum TP for FP rates of 0, .1, .2, .3
 
-
 '''
-
 import sub_matrix_mk_dict as subMdict
 import numpy as np
 import sys
-import read_fasta as rFasta
-import readwrite_file as RWFile
 import SW_run as SW
-import os
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import axes3d
@@ -86,30 +81,19 @@ def priority_pos_neg(pos_align_array, neg_align_array):
 def optimization(priority_list, origsubMatrix, pos_align, neg_align, delta, epsilon, max_itr):
     #delta = amount to vary values in subMatrix
     #epsillon = deviation from maximum value of objective function at which the optimization may stop
-    #max_itr = maximum iterations to run if epsilon condition never reached
+    #max_itr = maximum iterations to run if epsilon condition never reached NOT USED RIGHT NOW
     bestsubMatrix = origsubMatrix
     [new_pos_scores, new_neg_scores, posgaps, neggaps] = calc_new_scores(pos_align, neg_align, origsubMatrix)
     best_obj_func = obj_function(new_pos_scores, new_neg_scores)
     itr = 0
-    #while 4-best_obj_func >epsilon and itr<max_itr:
     for i in range(0,len(priority_list)):
-        #print i
         for newval in range(-50,50, 4):
-            #print newval
             newMatrix= newsubMatrix(newval, priority_list[i], bestsubMatrix)
             
             [new_pos_scores, new_neg_scores,posgaps, neggaps] = calc_new_scores(pos_align, neg_align, newMatrix)
             old_best_obj_func = best_obj_func
-            #print 'old', old_best_obj_func
-            #print 'new', obj_function(new_pos_scores, new_neg_scores)
             best_obj_func = max(best_obj_func, obj_function(new_pos_scores, new_neg_scores))
-            #print 'obj', best_obj_func
             eps = best_obj_func-old_best_obj_func
-            #print 'eps', eps
-            #delta = delta*(old_best_obj_func-obj_function(new_pos_scores, new_neg_scores))
-            #print 'delta', delta
-            #itr = itr+1
-            #print 'itr', itr
             if eps>0.0:
                 'yes'
                 bestsubMatrix = newMatrix.copy()
@@ -149,26 +133,28 @@ def main():
     gap_ext = 3
     
     [sub_Matrixdict, origSubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile)
-    '''
+    
     [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
-     
+    '''
     np.save(home+'pos_align_array', pos_align_array)
     np.save(home+'pos_scores', pos_scores )
-    
+    '''
     [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
+    '''
     np.save(home+'neg_align_array', neg_align_array )
-    np.savetxt(home+'neg_align_array.csv', neg_align_array[1])
     np.save(home+'neg_scores', neg_scores )
     '''
     origSubMatrix = generate_newsubMatrix(origSubMatrix, gap_init, gap_ext)
- 
+    '''
     
     #if already saved versions and made no changes to SW_run and seq_list_SW: just load from saved npy files
     neg_align_array=np.load(home+'neg_align_array.npy')
-    #neg_scores=np.load(home+'neg_scores.npy')
+    neg_scores=np.load(home+'neg_scores.npy')
     pos_align_array=np.load(home+'pos_align_array.npy')
-    #pos_scores=np.load(home+'pos_scores.npy')
-    
+    pos_scores=np.load(home+'pos_scores.npy')
+    '''
+    obj_func = obj_function(pos_scores, neg_scores)
+    print obj_func
     [new_pos_scores, new_neg_scores, posgaps, neggaps] = calc_new_scores(pos_align_array, neg_align_array, origSubMatrix)
 
     #generate priority of values in the scoring matrix to change
@@ -176,43 +162,46 @@ def main():
     
     #optimize using obj func calculation and output best performing matrix
     [bestMatrix, best_obj_func] = optimization(priority_list, origSubMatrix, pos_align_array, neg_align_array, 1, .3, 10)
+    
+    [opt_pos_scores, opt_neg_scores, posgaps, neggaps] = calc_new_scores(pos_align_array, neg_align_array, bestMatrix)
     print bestMatrix
     print best_obj_func
-    
+    '''
     np.save(home+'bestMatrix',bestMatrix)
     
     np.savetxt(home+'bestMatrix.txt', bestMatrix, fmt ='%+.2d', delimiter = '   ', header = ' A    R    N    D    C    Q    E    G    H    I    L    K    M    F    P    S    T    W    Y    V    B    Z    X    *')
+    '''
     #try out new optimized matrix
-    optimized_Matrix = np.load(home+'bestMatrix.npy')
+    
+    optimized_Matrix = np.load(home+'bestMatrixMATIO.npy')
     print optimized_Matrix
     [optimized_subMatrix_dict, newSubMatrix, AAlist] = subMdict.mk_dict_np(home+'bestMatrix.npy', AAlist)
     #print optimized_subMatrix_dict
     #print len(optimized_subMatrix_dict.keys())
     #print np.transpose(optimized_subMatrix_dict.keys())
-    [opt_pos_scores, opt_neg_scores, posgaps, neggaps] = calc_new_scores(pos_align_array, neg_align_array, optimized_Matrix)
     
     
+    [new_opt_pos_scores, opt_pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
+    [new_opt_neg_scores,opt_neg_align_array] = slSW.scores_from_seq_list(home, neg_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
+
+    #[opt_pos_scores, opt_neg_scores, posgaps, neggaps] = calc_new_scores(pos_align_array, neg_align_array, optimized_Matrix)
+    obj_func = obj_function(new_opt_pos_scores, new_opt_neg_scores)
     
+    print obj_func
+   
     orig_ROC_array = ROC.ROC_graph(new_pos_scores, new_neg_scores)
-    pylab.plot(orig_ROC_array[:,1], orig_ROC_array[:,0]/100, label = 'Original Alignment')
-    
-    
+    pylab.plot(orig_ROC_array[:,1], orig_ROC_array[:,0]/100, label = 'Original Alignment')  
     optimized_ROC_array = ROC.ROC_graph(opt_pos_scores, opt_neg_scores)
     pylab.plot(optimized_ROC_array[:,1], optimized_ROC_array[:,0]/100, label = 'Optimized Matrix')
+    realigned_optimized_ROC_array = ROC.ROC_graph(new_opt_pos_scores, new_opt_neg_scores)
+    pylab.plot(realigned_optimized_ROC_array[:,1], realigned_optimized_ROC_array[:,0]/100, label = 'Realigned')
     pylab.axis([0,1,0,1])
     pylab.legend(loc = 'lower right')
     pylab.ylabel('True Positive Rate')
     pylab.xlabel('False Positive Rate')
-    pylab.savefig('Compare_Optimized_ROC.png')
-    
-    '''
-    [new_opt_pos_scores, opt_pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
-    [new_opt_neg_scores,opt_neg_align_array] = slSW.scores_from_seq_list(home, neg_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
+    pylab.savefig('Compare_Optimized_ROC_Realigned.png')
 
-    obj_func = obj_function(opt_pos_scores, opt_neg_scores)
-    
-    print obj_func
-    '''
+
     
     print 'done'
     
