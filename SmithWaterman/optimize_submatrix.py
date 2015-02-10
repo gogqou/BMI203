@@ -28,12 +28,18 @@ def calc_new_scores(pos_align_array,neg_align_array, subMatrix):
     #multiple alignment arrays by substitution matrix to get the score for each aligned pair
     new_pos_scores=np.zeros(len(pos_align_array))
     new_neg_scores=np.zeros(len(neg_align_array))
+    posgaps = np.zeros([len(pos_align_array), 2])
+    neggaps = np.zeros([len(neg_align_array), 2])
     for i in range(0,len(pos_align_array)):
         new_pos_scores [i]= np.sum(pos_align_array[i]*subMatrix)
+        array1 = pos_align_array[i].copy()
+        posgaps[i] = [array1[0,23],array1[23,23]] 
     for j in range(0,len(neg_align_array)):
         new_neg_scores [j]= np.sum(neg_align_array[j]*subMatrix)
+        array2 = neg_align_array[j].copy()
+        neggaps[j] = [array2[0,23],array2[23,23]] 
         
-    return new_pos_scores, new_neg_scores
+    return new_pos_scores, new_neg_scores, posgaps, neggaps
 
 def obj_function(pos_scores, neg_scores):
     obj_fnc_val=0
@@ -77,7 +83,7 @@ def optimization(priority_list, origsubMatrix, pos_align, neg_align, delta, epsi
     #epsillon = deviation from maximum value of objective function at which the optimization may stop
     #max_itr = maximum iterations to run if epsilon condition never reached
     bestsubMatrix = origsubMatrix
-    [new_pos_scores, new_neg_scores] = calc_new_scores(pos_align, neg_align, origsubMatrix)
+    [new_pos_scores, new_neg_scores, posgaps, neggaps] = calc_new_scores(pos_align, neg_align, origsubMatrix)
     best_obj_func = obj_function(new_pos_scores, new_neg_scores)
     itr = 0
     #while 4-best_obj_func >epsilon and itr<max_itr:
@@ -87,7 +93,7 @@ def optimization(priority_list, origsubMatrix, pos_align, neg_align, delta, epsi
             #print newval
             newMatrix= newsubMatrix(newval, priority_list[i], bestsubMatrix)
             
-            [new_pos_scores, new_neg_scores] = calc_new_scores(pos_align, neg_align, newMatrix)
+            [new_pos_scores, new_neg_scores,posgaps, neggaps] = calc_new_scores(pos_align, neg_align, newMatrix)
             old_best_obj_func = best_obj_func
             #print 'old', old_best_obj_func
             #print 'new', obj_function(new_pos_scores, new_neg_scores)
@@ -129,11 +135,12 @@ def main():
     gap_ext = 3
     
     [sub_Matrixdict, origSubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile)
-    
+    '''
     [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
      
     np.save(home+'pos_align_array', pos_align_array)
     np.save(home+'pos_scores', pos_scores )
+    
     [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
     np.save(home+'neg_align_array', neg_align_array )
     np.save(home+'neg_scores', neg_scores )
@@ -144,21 +151,30 @@ def main():
     print 'neg', np.transpose(neg_scores)
     obf = obj_function(pos_scores, neg_scores)
     print obf
-    
+    '''
+    '''
     #if already saved versions and made no changes to SW_run and seq_list_SW: just load from saved npy files
     neg_align_array=np.load(home+'neg_align_array.npy')
     neg_scores=np.load(home+'neg_scores.npy')
     pos_align_array=np.load(home+'pos_align_array.npy')
     pos_scores=np.load(home+'pos_scores.npy')
-    [new_pos_scores, new_neg_scores] = calc_new_scores(pos_align_array, neg_align_array, origSubMatrix)
+    
+    [new_pos_scores, new_neg_scores, posgaps, neggaps] = calc_new_scores(pos_align_array, neg_align_array, origSubMatrix)
     print 'pos', new_pos_scores
     print 'neg', new_neg_scores
-
+    
+    
     obf = obj_function(new_pos_scores, new_neg_scores)
     print obf
+    
+    pos_dif= np.transpose(pos_scores) - new_pos_scores
+    print 'posdif', pos_dif
+    neg_dif= np.transpose(neg_scores) - new_neg_scores
+    print 'negdif', neg_dif
+
     #generate priority of values in the scoring matrix to change
     priority_list = priority_pos_neg(pos_align_array, neg_align_array)
-    '''
+    
     #optimize using obj func calculation and output best performing matrix
     [bestMatrix, best_obj_func] = optimization(priority_list, origSubMatrix, pos_align_array, neg_align_array, 1, .3, 10)
     print bestMatrix
@@ -166,20 +182,20 @@ def main():
     np.save(home+'bestMatrix',bestMatrix)
     '''
     #try out new optimized matrix
-    #optimized_Matrix = np.load(home+'bestMatrix.npy')
-    #[optimized_subMatrix_dict, newSubMatrix, AAlist] = subMdict.mk_dict_np(home+'bestMatrix.npy', AAlist)
+    optimized_Matrix = np.load(home+'bestMatrix.npy')
+    [optimized_subMatrix_dict, newSubMatrix, AAlist] = subMdict.mk_dict_np(home+'bestMatrix.npy', AAlist)
     #print optimized_subMatrix_dict
     #print len(optimized_subMatrix_dict.keys())
     #print np.transpose(optimized_subMatrix_dict.keys())
-    #[pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
-    #[neg_scores,neg_align_array] = slSW.scores_from_seq_list(home, neg_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
+    [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
+    [neg_scores,neg_align_array] = slSW.scores_from_seq_list(home, neg_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
 #     print pos_align_array[1,:]
 #     print new_pos_scores
 #     print new_neg_scores
 #     print pos_scores
 #     print neg_scores
-    #obj_func = obj_function(pos_scores, neg_scores)
-    #print obj_func
+    obj_func = obj_function(pos_scores, neg_scores)
+    print obj_func
 #     obj_func = obj_function(new_pos_scores, new_neg_scores)
 #     print obj_func
     print 'done'

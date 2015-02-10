@@ -92,18 +92,20 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             seq=seq+seq2[j]
             newseq2 = newseq2 + seq2[j]
             newseq1 = newseq1+'-'
+            matchscore_dict= C[seq2[j]+seq2[j]]
+            count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
             j = j-1
-            
             if H[i,j]>0 and pointers[ind1+str(j)] is 'diagonal':           
                 gap_open = gap_open +1
             else:
-                
                 gapcount = gapcount+1
         elif pointers[ind1+ind2] is 'up':
             #print 'up'
             seq=seq+seq1[i]
             newseq1 = newseq1 + seq1[i]
             newseq2 = newseq2+'-'
+            matchscore_dict= C[seq1[i]+seq1[i]]
+            count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
             i = i-1
             if H[i,j]>0 and pointers[str(i)+ind2] is 'diagonal':            
                 gap_open = gap_open +1
