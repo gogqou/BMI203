@@ -119,6 +119,7 @@ def newsubMatrix(newval, index, inputMatrix):
     newMatrix[index[1], index[0]] = newval
     return newMatrix
 def main():
+    np.set_printoptions(threshold=1000, linewidth=1000, precision = 5, suppress = False)
     if len(sys.argv)>5:
         print 'provide positive and negative pairs of sequences to align, directory, and substitution matrix choice '
         sys.exit()
