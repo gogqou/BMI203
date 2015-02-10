@@ -30,6 +30,8 @@ def SW_one_round(seq1, seq2, sub_Matrix, origSubMatrix, gap_init, gap_ext):
     
     return score, count_array
 def main():
+    np.set_printoptions(threshold=1000, linewidth=1000, precision = 5, suppress = False)
+    
     if len(sys.argv)>5:
         print 'provide positive and negative pairs of sequences to align, directory, and substitution matrix choice '
         sys.exit()
