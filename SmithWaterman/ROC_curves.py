@@ -49,12 +49,12 @@ def main():
     neg_seq_list_file = home+neg_seq_list_name+'.txt'
     subMatrixFile = sys.argv[4]
     subMatrixFile_list = ['BLOSUM50', 'BLOSUM62', 'MATIO', 'PAM100', 'PAM250']
-    gap_init = 13
+    gap_init = 7
     gap_ext = 3
     [sub_Matrix, origSubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile)
     
     # for testing different scoring matrices
-    
+    '''
     for i in range(0,len(subMatrixFile_list)):
         [sub_Matrix, origsubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile_list[i]) 
         [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrix,origSubMatrix, gap_init, gap_ext)
@@ -66,12 +66,12 @@ def main():
     [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrix, origSubMatrix, gap_init, gap_ext)
     ROC_array = ROC_graph(pos_scores, neg_scores,)
     pylab.plot(ROC_array[:,1], ROC_array[:,0]/100, label = subMatrixFile)
-    '''
+    
     pylab.axis([0,1,0,1])
     pylab.legend(loc = 'lower right')
     pylab.ylabel('True Positive Rate')
     pylab.xlabel('False Positive Rate')
-    pylab.savefig('ROC_Matrices_png')
+    pylab.savefig(subMatrixFile+'_raw.png')
     print 'done'
     
     return 1
