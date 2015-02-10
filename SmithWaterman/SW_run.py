@@ -146,9 +146,6 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
             i = i-1
             j = j-1
-        else: 
-            print 'new alignment'
-            break
     
     #matchscore_dict= C[seq1[i]+seq2[j]]
     #altscore = altscore + matchscore_dict[0]

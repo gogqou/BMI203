@@ -37,14 +37,15 @@ def main():
     if len(sys.argv)>5:
         print 'provide positive and negative pairs of sequences to align, directory, and substitution matrix choice '
         sys.exit()
-    #seq1 = sys.argv[1]
-    #seq2 = sys.argv[2]
-    seqfile1 = sys.argv[1]
-    seqfile2= sys.argv[2]
+    seq1 = sys.argv[1]
+    seq2 = sys.argv[2]
+    #seqfile1 = sys.argv[1]
+    #seqfile2= sys.argv[2]
     
     home = sys.argv[3]
-    seq1=rFasta.read_fa(home+seqfile1)
-    seq2=rFasta.read_fa(home+seqfile2)
+    #seq1=rFasta.read_fa(home+seqfile1)
+    #seq2=rFasta.read_fa(home+seqfile2)
+    
     subMatrixFile = sys.argv[4]
     
     gap_init = 13
