@@ -54,7 +54,7 @@ def main():
     [sub_Matrix, origSubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile)
     
     # for testing different scoring matrices
-    '''
+    
     for i in range(0,len(subMatrixFile_list)):
         [sub_Matrix, origsubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile_list[i]) 
         [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrix,origSubMatrix, gap_init, gap_ext)
@@ -66,6 +66,7 @@ def main():
     [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrix, origSubMatrix, gap_init, gap_ext)
     ROC_array = ROC_graph(pos_scores, neg_scores,)
     pylab.plot(ROC_array[:,1], ROC_array[:,0]/100, label = subMatrixFile+'normalized')
+    '''
     pylab.axis([0,1,0,1])
     pylab.legend(loc = 'lower right')
     pylab.ylabel('True Positive Rate')

@@ -119,8 +119,8 @@ def main():
     for i in range(0,len(subMatrixFile_list)):
         [sub_Matrix, origsubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile_list[i])
     
-        [pos_score_list, pos_alignment_array] = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix, origSubMatrix,7, 3)
-        [neg_score_list, neg_alignment_array] = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix, origSubMatrix, 7, 3)
+        [pos_score_list, pos_alignment_array] = scores_from_seq_list(home,pos_seq_list_file, sub_Matrix, origSubMatrix,6, 5)
+        [neg_score_list, neg_alignment_array] = scores_from_seq_list(home,neg_seq_list_file, sub_Matrix, origSubMatrix, 6, 5)
         false_pos_rt= false_pos_rate(pos_score_list, neg_score_list)
         FP_array.append([subMatrixFile_list[i], false_pos_rt])
         
