@@ -54,16 +54,16 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary, gap_init, gap_ex
             H[i,j] = max(left, up, diagonal, 0) 
             
             if H[i,j]== left:
-                pointers[str(i)+str(j)] = 'left'
+                pointers[(i,j)] = 'left'
                 gap = 1
             elif H[i,j]== up:
-                pointers[str(i)+str(j)] = 'up'
+                pointers[(i,j)] = 'up'
                 gap = 1
             elif H[i,j]== diagonal:
-                pointers[str(i)+str(j)] = 'diagonal'
+                pointers[(i,j)] = 'diagonal'
                 gap = 0
             else:
-                pointers[str(i)+str(j)]='0'
+                pointers[(i,j)]='0'
             j=j+1 #increment across the matrix
         i=i+1        #then increment down the matrix, so you know all values you need will be available
             
@@ -88,10 +88,9 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
     gapcount = 0
     gap_open = 0
     altscore = 0
-    while H[i,j]>0 and pointers[str(i)+str(j)] is not '0':
-        ind1=str(i)
-        ind2=str(j)
-        if pointers[ind1+ind2] is 'left':
+    while H[i,j]>0 and pointers[(i,j)] is not '0':
+
+        if pointers[(i,j)] is 'left':
             print 'left'
             seq=seq+seq2[j]
             newseq2 = newseq2 + seq2[j]
@@ -105,11 +104,11 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             altscore = altscore + matchscore_dict[0]
             count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
             j = j-1
-            if H[i,j]>0 and pointers[ind1+str(j)] is 'diagonal':           
+            if H[i,j]>0 and pointers[(i,j)] is 'diagonal':           
                 gap_open = gap_open +1
             else:
                 gapcount = gapcount+1
-        elif pointers[ind1+ind2] is 'up':
+        elif pointers[(i,j)] is 'up':
             print 'up'
             seq=seq+seq1[i]
             newseq1 = newseq1 + seq1[i]
@@ -124,12 +123,12 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             altscore = altscore + matchscore_dict[0]
             count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
             i = i-1
-            if H[i,j]>0 and pointers[str(i)+ind2] is 'diagonal':            
+            if H[i,j]>0 and pointers[(i,j)] is 'diagonal':            
                 gap_open = gap_open +1
             else:
                 gapcount = gapcount+1
                 
-        elif pointers[ind1+ind2] is 'diagonal': 
+        elif pointers[(i,j)] is 'diagonal': 
             print 'diag'
             seq=seq+seq1[i]
             newseq1=newseq1+seq1[i]

@@ -20,6 +20,7 @@ def SW_one_round(seq1, seq2, sub_Matrix, origSubMatrix, gap_init, gap_ext):
     [sim_Matrix, pointers] = SW.similarity_matrix(seq1,seq2, sub_Matrix, gap_init, gap_ext)
     [aligned_sequence, fitted_seq1, fitted_seq2, sim_Matrix, score, count_array] = SW.trace_aligned_seq(seq1, seq2, sim_Matrix, pointers, origSubMatrix, sub_Matrix)
     print sim_Matrix
+    np.savetxt('sim_Matrix.txt', sim_Matrix, fmt='%.1d', delimiter = ' ')
     print count_array
     print aligned_sequence
     print fitted_seq1
@@ -46,7 +47,7 @@ def main():
     seq2=rFasta.read_fa(home+seqfile2)
     subMatrixFile = sys.argv[4]
     
-    gap_init = 5
+    gap_init = 13
     gap_ext = 3
     
     [sub_Matrixdict, origSubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile)
