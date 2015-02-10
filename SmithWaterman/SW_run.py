@@ -98,8 +98,6 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             seq=seq+seq2[j]
             newseq2 = newseq2 + seq2[j]
             newseq1 = newseq1+'-'
-            matchscore_dict= C[seq2[j]+seq2[j]]
-            count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
             j = j-1
             if H[i,j]>0 and pointers[(i,j)] is 'diagonal':           
                 gap_open = gap_open +1
@@ -110,8 +108,6 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             seq=seq+seq1[i]
             newseq1 = newseq1 + seq1[i]
             newseq2 = newseq2+'-'            
-            matchscore_dict= C[seq1[i]+seq1[i]]
-            count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
             i = i-1
             if H[i,j]>0 and pointers[(i,j)] is 'diagonal':            
                 gap_open = gap_open +1
@@ -123,13 +119,11 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             seq=seq+seq1[i]
             newseq1=newseq1+seq1[i]
             newseq2=newseq2+seq2[j]
-            print seq1[i]
-            print seq2[j]
             #finds the AAtoAA comparison in the dictionary
             #2nd and 3rd entries are the indices in the original substitution matrix
             #only necessary in a match because in other cases, the cost is just gap initiation or extension
             #at these same indices, increment count of the times that that score was used
-            print H[i,j]
+   
             matchscore_dict= C[seq1[i]+seq2[j]]
             #print matchscore_dict[0]
             altscore = altscore + matchscore_dict[0]
@@ -141,7 +135,7 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
     newseq1=newseq1[::-1]
     newseq2=newseq2[::-1]
     altscore = altscore - gap_open*13 - gapcount*3
-    print 'altscore', altscore
+    #print 'altscore', altscore
     count_array[0,23] = gap_open
     count_array[23,23]=gapcount
     #H[start,end]=0
