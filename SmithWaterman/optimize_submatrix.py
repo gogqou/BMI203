@@ -118,6 +118,14 @@ def newsubMatrix(newval, index, inputMatrix):
     newMatrix[index[0], index[1]] = newval
     newMatrix[index[1], index[0]] = newval
     return newMatrix
+def graph_ROC(array, graphlabel):
+    pylab.plot(array[:,1], array[:,0]/100, label = graphlabel)
+    
+    pylab.axis([0,1,0,1])
+    pylab.legend(loc = 'lower right')
+    pylab.ylabel('True Positive Rate')
+    pylab.xlabel('False Positive Rate')
+    pylab.savefig(graphlabel+'_ROC.png')
 def main():
     np.set_printoptions(threshold=1000, linewidth=1000, precision = 5, suppress = False)
     if len(sys.argv)>5:
@@ -136,7 +144,7 @@ def main():
     gap_ext = 3
     
     [sub_Matrixdict, origSubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile)
-    
+    '''
     [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
      
     np.save(home+'pos_align_array', pos_align_array)
@@ -146,15 +154,15 @@ def main():
     np.save(home+'neg_align_array', neg_align_array )
     np.savetxt(home+'neg_align_array.csv', neg_align_array[1])
     np.save(home+'neg_scores', neg_scores )
-    
+    '''
     origSubMatrix = generate_newsubMatrix(origSubMatrix, gap_init, gap_ext)
  
-
+    
     #if already saved versions and made no changes to SW_run and seq_list_SW: just load from saved npy files
     neg_align_array=np.load(home+'neg_align_array.npy')
-    neg_scores=np.load(home+'neg_scores.npy')
+    #neg_scores=np.load(home+'neg_scores.npy')
     pos_align_array=np.load(home+'pos_align_array.npy')
-    pos_scores=np.load(home+'pos_scores.npy')
+    #pos_scores=np.load(home+'pos_scores.npy')
     
     [new_pos_scores, new_neg_scores, posgaps, neggaps] = calc_new_scores(pos_align_array, neg_align_array, origSubMatrix)
     
@@ -165,27 +173,39 @@ def main():
     [bestMatrix, best_obj_func] = optimization(priority_list, origSubMatrix, pos_align_array, neg_align_array, 1, .3, 10)
     print bestMatrix
     print best_obj_func
-    np.save(home+'bestMatrix',bestMatrix)
+    np.save(home+'bestMatrix_MATIO',bestMatrix)
     
     
     #try out new optimized matrix
-    optimized_Matrix = np.load(home+'bestMatrix.npy')
+    optimized_Matrix = np.load(home+'bestMatrix_MATIO.npy')
     print optimized_Matrix
-    [optimized_subMatrix_dict, newSubMatrix, AAlist] = subMdict.mk_dict_np(home+'bestMatrix.npy', AAlist)
+    [optimized_subMatrix_dict, newSubMatrix, AAlist] = subMdict.mk_dict_np(home+'bestMatrix_MATIO.npy', AAlist)
     #print optimized_subMatrix_dict
     #print len(optimized_subMatrix_dict.keys())
     #print np.transpose(optimized_subMatrix_dict.keys())
-    [opt_pos_scores, opt_pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
-    [opt_neg_scores,opt_neg_align_array] = slSW.scores_from_seq_list(home, neg_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
-#     print pos_align_array[1,:]
-#     print new_pos_scores
-#     print new_neg_scores
-#     print pos_scores
-#     print neg_scores
+    [opt_pos_scores, opt_neg_scores, posgaps, neggaps] = calc_new_scores(pos_align_array, neg_align_array, optimized_Matrix)
+    
+    
+    orig_ROC_array = ROC.ROC_graph(new_pos_scores, new_neg_scores)
+    pylab.plot(orig_ROC_array[:,1], orig_ROC_array[:,0]/100, label = 'Original Alignment')
+    
+    
+    optimized_ROC_array = ROC.ROC_graph(opt_pos_scores, opt_neg_scores)
+    pylab.plot(optimized_ROC_array[:,1], optimized_ROC_array[:,0]/100, label = 'Optimized Matrix')
+    pylab.axis([0,1,0,1])
+    pylab.legend(loc = 'lower right')
+    pylab.ylabel('True Positive Rate')
+    pylab.xlabel('False Positive Rate')
+    pylab.savefig('Compare_Optimized_ROC_MATIO.png')
+    
+    '''
+    [new_opt_pos_scores, opt_pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
+    [new_opt_neg_scores,opt_neg_align_array] = slSW.scores_from_seq_list(home, neg_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
+
     obj_func = obj_function(opt_pos_scores, opt_neg_scores)
+    
     print obj_func
-#     obj_func = obj_function(new_pos_scores, new_neg_scores)
-#     print obj_func
+    '''
     
     print 'done'
     
