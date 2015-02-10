@@ -173,13 +173,13 @@ def main():
     [bestMatrix, best_obj_func] = optimization(priority_list, origSubMatrix, pos_align_array, neg_align_array, 1, .3, 10)
     print bestMatrix
     print best_obj_func
-    np.save(home+'bestMatrix_MATIO',bestMatrix)
+    np.save(home+'bestMatrix',bestMatrix)
     
-    
+    np.savetxt(home+'bestMatrix.txt', bestMatrix, fmt ='%+.2d', delimiter = '   ', header = ' A    R    N    D    C    Q    E    G    H    I    L    K    M    F    P    S    T    W    Y    V    B    Z    X    *')
     #try out new optimized matrix
-    optimized_Matrix = np.load(home+'bestMatrix_MATIO.npy')
+    optimized_Matrix = np.load(home+'bestMatrix.npy')
     print optimized_Matrix
-    [optimized_subMatrix_dict, newSubMatrix, AAlist] = subMdict.mk_dict_np(home+'bestMatrix_MATIO.npy', AAlist)
+    [optimized_subMatrix_dict, newSubMatrix, AAlist] = subMdict.mk_dict_np(home+'bestMatrix.npy', AAlist)
     #print optimized_subMatrix_dict
     #print len(optimized_subMatrix_dict.keys())
     #print np.transpose(optimized_subMatrix_dict.keys())
@@ -196,7 +196,7 @@ def main():
     pylab.legend(loc = 'lower right')
     pylab.ylabel('True Positive Rate')
     pylab.xlabel('False Positive Rate')
-    pylab.savefig('Compare_Optimized_ROC_MATIO.png')
+    pylab.savefig('Compare_Optimized_ROC.png')
     
     '''
     [new_opt_pos_scores, opt_pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
