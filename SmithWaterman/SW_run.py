@@ -97,7 +97,6 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             newseq2 = newseq2 + seq2[j]
             newseq1 = newseq1+'-'
             matchscore_dict= C[seq2[j]+seq2[j]]
-            matchscore_dict= C[seq1[i]+seq1[i]]
             print seq1[i]
             print seq2[j]
             print H[i,j]
