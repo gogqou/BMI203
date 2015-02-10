@@ -20,7 +20,7 @@ def SW_one_round(seq1, seq2, sub_Matrix, origSubMatrix, gap_init, gap_ext):
     [sim_Matrix, pointers] = SW.similarity_matrix(seq1,seq2, sub_Matrix, gap_init, gap_ext)
     [aligned_sequence, fitted_seq1, fitted_seq2, sim_Matrix, score, count_array] = SW.trace_aligned_seq(seq1, seq2, sim_Matrix, pointers, origSubMatrix, sub_Matrix)
     print sim_Matrix
-    np.savetxt('sim_Matrix.txt', sim_Matrix, fmt='%.1d', delimiter = ' ')
+    np.savetxt('sim_Matrix.txt', sim_Matrix, fmt='%.2d', delimiter = '   ')
     print count_array
     print aligned_sequence
     print fitted_seq1
