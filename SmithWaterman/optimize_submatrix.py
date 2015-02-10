@@ -148,13 +148,8 @@ def main():
     np.save(home+'neg_scores', neg_scores )
     
     origSubMatrix = generate_newsubMatrix(origSubMatrix, gap_init, gap_ext)
-    
-    print 'pos', np.transpose(pos_scores)
-    print 'neg', np.transpose(neg_scores)
-    obf = obj_function(pos_scores, neg_scores)
-    print obf
-    
-    
+ 
+
     #if already saved versions and made no changes to SW_run and seq_list_SW: just load from saved npy files
     neg_align_array=np.load(home+'neg_align_array.npy')
     neg_scores=np.load(home+'neg_scores.npy')
@@ -162,18 +157,7 @@ def main():
     pos_scores=np.load(home+'pos_scores.npy')
     
     [new_pos_scores, new_neg_scores, posgaps, neggaps] = calc_new_scores(pos_align_array, neg_align_array, origSubMatrix)
-    print 'pos', new_pos_scores
-    print 'neg', new_neg_scores
     
-    
-    obf = obj_function(new_pos_scores, new_neg_scores)
-    print obf
-    
-    pos_dif= np.transpose(pos_scores) - new_pos_scores
-    print 'posdif', pos_dif
-    neg_dif= np.transpose(neg_scores) - new_neg_scores
-    print 'negdif', neg_dif
-
     #generate priority of values in the scoring matrix to change
     priority_list = priority_pos_neg(pos_align_array, neg_align_array)
     
@@ -183,7 +167,7 @@ def main():
     print best_obj_func
     np.save(home+'bestMatrix',bestMatrix)
     
-    '''
+    
     #try out new optimized matrix
     optimized_Matrix = np.load(home+'bestMatrix.npy')
     print optimized_Matrix
@@ -191,18 +175,18 @@ def main():
     #print optimized_subMatrix_dict
     #print len(optimized_subMatrix_dict.keys())
     #print np.transpose(optimized_subMatrix_dict.keys())
-    [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
-    [neg_scores,neg_align_array] = slSW.scores_from_seq_list(home, neg_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
+    [opt_pos_scores, opt_pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
+    [opt_neg_scores,opt_neg_align_array] = slSW.scores_from_seq_list(home, neg_seq_list_file, optimized_subMatrix_dict, newSubMatrix, gap_init, gap_ext)
 #     print pos_align_array[1,:]
 #     print new_pos_scores
 #     print new_neg_scores
 #     print pos_scores
 #     print neg_scores
-    obj_func = obj_function(pos_scores, neg_scores)
+    obj_func = obj_function(opt_pos_scores, opt_neg_scores)
     print obj_func
 #     obj_func = obj_function(new_pos_scores, new_neg_scores)
 #     print obj_func
-    '''
+    
     print 'done'
     
     return 1
