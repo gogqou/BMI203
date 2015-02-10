@@ -41,11 +41,11 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary, gap_init, gap_ex
             
             #left = H[i-1,j]+C[seq1[i]+'*'] +(gap-1)*gap_init - gap*gap_ext #gap in seq2
             #up=H[i,j-1]+C['*'+seq2[j]] +(gap-1)*gap_init - gap*gap_ext 
-            #left = H[i-1,j]+(gap-1)*gap_init - gap*gap_ext #gap in seq2
-            left = max(H[i-1,j]- gap_ext, H[i-1, j-1]-gap_init- gap_ext)
-            #up=H[i,j-1] +(gap-1)*gap_init - gap*gap_ext 
+            left = H[i-1,j]+(gap-1)*gap_init - gap*gap_ext #gap in seq2
+            #left = max(H[i-1,j]- gap_ext, H[i-1, j-1]-gap_init- gap_ext)
+            up=H[i,j-1] +(gap-1)*gap_init - gap*gap_ext 
             
-            up = max(H[i, j-1]-gap_ext, H[i-1,j-1]-gap_init-gap_ext)
+            #up = max(H[i, j-1]-gap_ext, H[i-1,j-1]-gap_init-gap_ext)
             #gap in seq1; if gap=1, then there was already a gap started, no gap_init cost
             #if gap = 0, then choosing either left or up requires starting a gap, multiplying -1 by the gap_init cost means subtracting it
             matchscore_dict= C[seq1[i]+seq2[j]] #necessary because the value associated with this key includes the score as well as the index in the original scoring matrix
