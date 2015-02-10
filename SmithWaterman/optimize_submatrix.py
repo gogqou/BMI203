@@ -88,7 +88,7 @@ def optimization(priority_list, origsubMatrix, pos_align, neg_align, delta, epsi
     itr = 0
     #while 4-best_obj_func >epsilon and itr<max_itr:
     for i in range(0,len(priority_list)):
-        print i
+        #print i
         for newval in range(-50,50, 4):
             #print newval
             newMatrix= newsubMatrix(newval, priority_list[i], bestsubMatrix)
@@ -135,7 +135,7 @@ def main():
     gap_ext = 3
     
     [sub_Matrixdict, origSubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile)
-    '''
+    
     [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
      
     np.save(home+'pos_align_array', pos_align_array)
@@ -143,16 +143,17 @@ def main():
     
     [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
     np.save(home+'neg_align_array', neg_align_array )
+    np.savetxt(home+'neg_align_array.csv', neg_align_array[1])
     np.save(home+'neg_scores', neg_scores )
     
-    #origSubMatrix = generate_newsubMatrix(origSubMatrix, gap_init, gap_ext)
+    origSubMatrix = generate_newsubMatrix(origSubMatrix, gap_init, gap_ext)
     
     print 'pos', np.transpose(pos_scores)
     print 'neg', np.transpose(neg_scores)
     obf = obj_function(pos_scores, neg_scores)
     print obf
-    '''
-    '''
+    
+    
     #if already saved versions and made no changes to SW_run and seq_list_SW: just load from saved npy files
     neg_align_array=np.load(home+'neg_align_array.npy')
     neg_scores=np.load(home+'neg_scores.npy')
@@ -180,9 +181,11 @@ def main():
     print bestMatrix
     print best_obj_func
     np.save(home+'bestMatrix',bestMatrix)
+    
     '''
     #try out new optimized matrix
     optimized_Matrix = np.load(home+'bestMatrix.npy')
+    print optimized_Matrix
     [optimized_subMatrix_dict, newSubMatrix, AAlist] = subMdict.mk_dict_np(home+'bestMatrix.npy', AAlist)
     #print optimized_subMatrix_dict
     #print len(optimized_subMatrix_dict.keys())
@@ -198,6 +201,7 @@ def main():
     print obj_func
 #     obj_func = obj_function(new_pos_scores, new_neg_scores)
 #     print obj_func
+    '''
     print 'done'
     
     return 1

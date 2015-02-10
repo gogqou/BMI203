@@ -41,8 +41,11 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary, gap_init, gap_ex
             
             #left = H[i-1,j]+C[seq1[i]+'*'] +(gap-1)*gap_init - gap*gap_ext #gap in seq2
             #up=H[i,j-1]+C['*'+seq2[j]] +(gap-1)*gap_init - gap*gap_ext 
-            left = H[i-1,j]+(gap-1)*gap_init - gap*gap_ext #gap in seq2
-            up=H[i,j-1] +(gap-1)*gap_init - gap*gap_ext 
+            #left = H[i-1,j]+(gap-1)*gap_init - gap*gap_ext #gap in seq2
+            left = max(H[i-1,j]- gap_ext, H[i-1, j-1]-gap_init- gap_ext)
+            #up=H[i,j-1] +(gap-1)*gap_init - gap*gap_ext 
+            
+            up = max(H[i, j-1]-gap_ext, H[i-1,j-1]-gap_init-gap_ext)
             #gap in seq1; if gap=1, then there was already a gap started, no gap_init cost
             #if gap = 0, then choosing either left or up requires starting a gap, multiplying -1 by the gap_init cost means subtracting it
             matchscore_dict= C[seq1[i]+seq2[j]] #necessary because the value associated with this key includes the score as well as the index in the original scoring matrix
@@ -78,21 +81,29 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
     j = indices[1]
     start=i
     end= j
-    seq=seq+seq2[j]
-    newseq1=newseq1+seq2[j]
-    newseq2=newseq2+seq2[j]
+    #seq=seq+seq2[j]
+    #newseq1=newseq1+seq2[j]
+    #newseq2=newseq2+seq2[j]
     score = H[i,j]
     gapcount = 0
     gap_open = 0
+    altscore = 0
     while H[i,j]>0 and pointers[str(i)+str(j)] is not '0':
         ind1=str(i)
         ind2=str(j)
         if pointers[ind1+ind2] is 'left':
-            #print 'left'
+            print 'left'
             seq=seq+seq2[j]
             newseq2 = newseq2 + seq2[j]
             newseq1 = newseq1+'-'
             matchscore_dict= C[seq2[j]+seq2[j]]
+            matchscore_dict= C[seq1[i]+seq1[i]]
+            print seq1[i]
+            print seq2[j]
+            print H[i,j]
+            #print H[i,j]-H[i, j-1]
+            print matchscore_dict[0]
+            altscore = altscore + matchscore_dict[0]
             count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
             j = j-1
             if H[i,j]>0 and pointers[ind1+str(j)] is 'diagonal':           
@@ -100,38 +111,58 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             else:
                 gapcount = gapcount+1
         elif pointers[ind1+ind2] is 'up':
-            #print 'up'
+            print 'up'
             seq=seq+seq1[i]
             newseq1 = newseq1 + seq1[i]
             newseq2 = newseq2+'-'
+            print seq1[i]
+            print seq2[j]
+            
             matchscore_dict= C[seq1[i]+seq1[i]]
+            print H[i,j]
+            #print H[i,j]-H[i-1, j]
+            print matchscore_dict[0]
+            altscore = altscore + matchscore_dict[0]
             count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
             i = i-1
             if H[i,j]>0 and pointers[str(i)+ind2] is 'diagonal':            
                 gap_open = gap_open +1
             else:
                 gapcount = gapcount+1
+                
         elif pointers[ind1+ind2] is 'diagonal': 
-            #print 'diag'
+            print 'diag'
             seq=seq+seq1[i]
             newseq1=newseq1+seq1[i]
             newseq2=newseq2+seq2[j]
+            print seq1[i]
+            print seq2[j]
             #finds the AAtoAA comparison in the dictionary
             #2nd and 3rd entries are the indices in the original substitution matrix
             #only necessary in a match because in other cases, the cost is just gap initiation or extension
             #at these same indices, increment count of the times that that score was used
-            
+            print H[i,j]
             matchscore_dict= C[seq1[i]+seq2[j]]
+            print matchscore_dict[0]
+            altscore = altscore + matchscore_dict[0]
             count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
             i = i-1
             j = j-1
         else: 
             print 'new alignment'
             break
+    
+    matchscore_dict= C[seq1[i]+seq2[j]]
+    altscore = altscore + matchscore_dict[0]
+    count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
+    seq=seq+seq1[i]
+    newseq1=newseq1+seq1[i]
+    newseq2=newseq2+seq2[j]
     seq=seq[::-1]
     newseq1=newseq1[::-1]
     newseq2=newseq2[::-1]
     
+    print 'altscore', altscore
     count_array[0,23] = gap_open
     count_array[23,23]=gapcount
     #H[start,end]=0
