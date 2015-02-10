@@ -98,21 +98,35 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             seq=seq+seq2[j]
             newseq2 = newseq2 + seq2[j]
             newseq1 = newseq1+'-'
+            
             j = j-1
             if H[i,j]>0 and pointers[(i,j)] is 'diagonal':           
                 gap_open = gap_open +1
+                matchscore_dict= C[seq2[j]+'*']
+                count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1         
+           
             else:
                 gapcount = gapcount+1
+                matchscore_dict= C['*'+'*']
+            
+                count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1         
+           
         elif pointers[(i,j)] is 'up':
             #print 'up'
             seq=seq+seq1[i]
             newseq1 = newseq1 + seq1[i]
-            newseq2 = newseq2+'-'            
+            newseq2 = newseq2+'-'   
             i = i-1
             if H[i,j]>0 and pointers[(i,j)] is 'diagonal':            
                 gap_open = gap_open +1
+                matchscore_dict= C[seq1[i]+'*']
+                count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1         
+            
             else:
                 gapcount = gapcount+1
+                matchscore_dict= C['*'+'*']
+                count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1         
+           
                 
         elif pointers[(i,j)] is 'diagonal': 
             #print 'diag'
@@ -136,8 +150,8 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
     newseq2=newseq2[::-1]
     altscore = altscore - gap_open*7 - gapcount*3
     #print 'altscore', altscore
-    count_array[0,23] = gap_open
-    count_array[23,23]=gapcount
+    #count_array[0,23] = gap_open
+    #count_array[23,23]=gapcount
     #H[start,end]=0
     # to test ROC, average by minimum len of the compared pair
     #score = score/min(len(seq1), len(seq2))

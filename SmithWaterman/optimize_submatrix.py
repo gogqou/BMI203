@@ -50,7 +50,8 @@ def obj_function(pos_scores, neg_scores):
 def generate_newsubMatrix(origsubMatrix, gap_init, gap_ext):
     
     newsubMatrix = origsubMatrix.copy()
-    newsubMatrix[0,23]=-gap_init
+    newsubMatrix[:,23]=-gap_init
+    newsubMatrix[23,:]=-gap_init
     newsubMatrix [23,23] = -gap_ext
     return newsubMatrix
 
@@ -75,8 +76,12 @@ def priority_pos_neg(pos_align_array, neg_align_array):
         priority_list.append(max_indices)
         max = abs_cumul[max_indices]
         abs_cumul[max_indices]=0
-    print priority_list
-    return priority_list
+    delete_list = []
+    for i in range(0,24):
+        delete_list.append((23,i))
+        delete_list.append((i,23))
+    new_priority_list =[x for x in priority_list if x not in delete_list]
+    return new_priority_list
 
 def optimization(priority_list, origsubMatrix, pos_align, neg_align, delta, epsilon, max_itr):
     #delta = amount to vary values in subMatrix
@@ -165,7 +170,7 @@ def main():
     #pos_scores=np.load(home+'pos_scores.npy')
     
     [new_pos_scores, new_neg_scores, posgaps, neggaps] = calc_new_scores(pos_align_array, neg_align_array, origSubMatrix)
-    
+
     #generate priority of values in the scoring matrix to change
     priority_list = priority_pos_neg(pos_align_array, neg_align_array)
     
@@ -173,6 +178,7 @@ def main():
     [bestMatrix, best_obj_func] = optimization(priority_list, origSubMatrix, pos_align_array, neg_align_array, 1, .3, 10)
     print bestMatrix
     print best_obj_func
+    
     np.save(home+'bestMatrix',bestMatrix)
     
     np.savetxt(home+'bestMatrix.txt', bestMatrix, fmt ='%+.2d', delimiter = '   ', header = ' A    R    N    D    C    Q    E    G    H    I    L    K    M    F    P    S    T    W    Y    V    B    Z    X    *')
@@ -184,6 +190,7 @@ def main():
     #print len(optimized_subMatrix_dict.keys())
     #print np.transpose(optimized_subMatrix_dict.keys())
     [opt_pos_scores, opt_neg_scores, posgaps, neggaps] = calc_new_scores(pos_align_array, neg_align_array, optimized_Matrix)
+    
     
     
     orig_ROC_array = ROC.ROC_graph(new_pos_scores, new_neg_scores)
