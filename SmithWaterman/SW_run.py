@@ -151,12 +151,12 @@ def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, su
             print 'new alignment'
             break
     
-    matchscore_dict= C[seq1[i]+seq2[j]]
-    altscore = altscore + matchscore_dict[0]
-    count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
-    seq=seq+seq1[i]
-    newseq1=newseq1+seq1[i]
-    newseq2=newseq2+seq2[j]
+    #matchscore_dict= C[seq1[i]+seq2[j]]
+    #altscore = altscore + matchscore_dict[0]
+    #count_array[matchscore_dict[1],matchscore_dict[2]]= count_array[matchscore_dict[1],matchscore_dict[2]] + 1
+    #seq=seq+seq1[i]
+    #newseq1=newseq1+seq1[i]
+    #newseq2=newseq2+seq2[j]
     seq=seq[::-1]
     newseq1=newseq1[::-1]
     newseq2=newseq2[::-1]
