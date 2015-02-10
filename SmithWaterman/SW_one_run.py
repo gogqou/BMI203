@@ -52,7 +52,6 @@ def main():
     gap_ext = 3
     
     [sub_Matrixdict, origSubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile)
-    print origSubMatrix
     [score, count_array] = SW_one_round(seq1, seq2, sub_Matrixdict,origSubMatrix, gap_init, gap_ext)
     
     

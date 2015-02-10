@@ -34,39 +34,44 @@ def similarity_matrix(seq1,seq2,substitution_Matrix_dictionary, gap_init, gap_ex
     H = similarity_matrix.copy()
     C = substitution_Matrix_dictionary # for easier typing later on
     pointers = {} #dictionary to keep pointers of where each space got its value
-    gap = 0
-    for i in range(1,len(seq1)):
-        for j in range(1,len(seq2)):
+    Gappointers = {}
+    for i in range(0,len(seq1)):
+        Gappointers[(i,0)] = False
+    for j in range(0,len(seq2)):
+        Gappointers[(0,j)] = False   
+    
+    for j in range(1,len(seq2)):
+        for i in range(1,len(seq1)):
+        
             #calculates the value for each of the possible moves so it's easier to compare them later
-            
-            #left = H[i-1,j]+C[seq1[i]+'*'] +(gap-1)*gap_init - gap*gap_ext #gap in seq2
-            #up=H[i,j-1]+C['*'+seq2[j]] +(gap-1)*gap_init - gap*gap_ext 
-            left = H[i-1,j]+(gap-1)*gap_init - gap*gap_ext #gap in seq2
-            #left = max(H[i-1,j]- gap_ext, H[i-1, j-1]-gap_init- gap_ext)
-            up=H[i,j-1] +(gap-1)*gap_init - gap*gap_ext 
-            
-            #up = max(H[i, j-1]-gap_ext, H[i-1,j-1]-gap_init-gap_ext)
+            if Gappointers[(i,j-1)] is False:
+                left = H[i, j-1]-gap_init 
+            else:  
+                left = H[i, j-1] -gap_ext
+            if Gappointers[(i-1,j)] is False:
+                up = H[i-1, j]-gap_init
+            else:  
+                
+                up = H[i-1, j]-gap_ext
+
             #gap in seq1; if gap=1, then there was already a gap started, no gap_init cost
             #if gap = 0, then choosing either left or up requires starting a gap, multiplying -1 by the gap_init cost means subtracting it
             matchscore_dict= C[seq1[i]+seq2[j]] #necessary because the value associated with this key includes the score as well as the index in the original scoring matrix
             diagonal = H[i-1,j-1]+matchscore_dict[0] #match
-            
             H[i,j] = max(left, up, diagonal, 0) 
-            
+            print i,j
             if H[i,j]== left:
                 pointers[(i,j)] = 'left'
-                gap = 1
+                Gappointers[(i,j)] = True
             elif H[i,j]== up:
                 pointers[(i,j)] = 'up'
-                gap = 1
+                Gappointers[(i,j)] = True
             elif H[i,j]== diagonal:
                 pointers[(i,j)] = 'diagonal'
-                gap = 0
+                Gappointers[(i,j)] = False
             else:
                 pointers[(i,j)]='0'
-            j=j+1 #increment across the matrix
-        i=i+1        #then increment down the matrix, so you know all values you need will be available
-            
+                       
     return H, pointers
 
 def trace_aligned_seq(seq1, seq2, similarity_matrix, pointers, origsubMatrix, subMatrixdict):
