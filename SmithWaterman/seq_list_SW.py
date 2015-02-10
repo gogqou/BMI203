@@ -112,7 +112,6 @@ def main():
         
     print FP_array
     np.save(home+'FP_rate Submatrices', FP_array)
-    RWFile.writetxt(FP_array, home, 'FPrate SubMatrices.txt')
     graph_cost_array()
     '''
     
