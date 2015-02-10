@@ -133,26 +133,26 @@ def main():
     gap_ext = 3
     
     [sub_Matrixdict, origSubMatrix, AAlist] = subMdict.mk_dict(home+subMatrixFile)
-    
-    [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
     '''
+    [pos_scores, pos_align_array] = slSW.scores_from_seq_list(home, pos_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
+    
     np.save(home+'pos_align_array', pos_align_array)
     np.save(home+'pos_scores', pos_scores )
-    '''
+    
     [neg_scores, neg_align_array]= slSW.scores_from_seq_list(home, neg_seq_list_file, sub_Matrixdict, origSubMatrix, gap_init, gap_ext)
-    '''
+    
     np.save(home+'neg_align_array', neg_align_array )
     np.save(home+'neg_scores', neg_scores )
     '''
     origSubMatrix = generate_newsubMatrix(origSubMatrix, gap_init, gap_ext)
-    '''
+    
     
     #if already saved versions and made no changes to SW_run and seq_list_SW: just load from saved npy files
     neg_align_array=np.load(home+'neg_align_array.npy')
     neg_scores=np.load(home+'neg_scores.npy')
     pos_align_array=np.load(home+'pos_align_array.npy')
     pos_scores=np.load(home+'pos_scores.npy')
-    '''
+    
     obj_func = obj_function(pos_scores, neg_scores)
     print obj_func
     [new_pos_scores, new_neg_scores, posgaps, neggaps] = calc_new_scores(pos_align_array, neg_align_array, origSubMatrix)
@@ -173,7 +173,7 @@ def main():
     '''
     #try out new optimized matrix
     
-    optimized_Matrix = np.load(home+'bestMatrixMATIO.npy')
+    optimized_Matrix = np.load(home+'bestMatrix.npy')
     print optimized_Matrix
     [optimized_subMatrix_dict, newSubMatrix, AAlist] = subMdict.mk_dict_np(home+'bestMatrix.npy', AAlist)
     #print optimized_subMatrix_dict
