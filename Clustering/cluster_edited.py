@@ -194,6 +194,33 @@ def check_multimer(site):
     return check, n, monomer_num
 
 ####################################################################################
+def nmers(active_sites):
+    
+    nmers = [1]
+    for j in range(len(active_sites)):
+        [check, n, monomer_num]=check_multimer(active_sites[j])
+        active_sites[j].monomersize= monomer_num #assigns the monomer size from count performed in check_multimer
+        if check is True:
+            active_sites[j].multimer = True
+            active_sites[j].nmer = n
+            if n in nmers:
+                continue
+            else:
+                nmers.append(n)
+
+    nmers = sorted(nmers)
+    clusters = [[] for i in range(len(nmers))]
+    labeled_clusters = zip(nmers, clusters)
+    for m in range(len(nmers)):
+        for j in range(len(active_sites)):
+            if active_sites[j].nmer == nmers[m]:
+                clusters[m].append(active_sites[j])    
+    for k in range(len(clusters)):
+        print labeled_clusters[k]
+    
+    return labeled_clusters, active_sites
+
+
 
 ###############################################################################
 # calculates the distance between two residues primary carbons                #
@@ -300,6 +327,17 @@ def cluster_by_partitioning(active_sites):
     return clusters
 
 ###############################################################################
+
+###############################################################################
+#                                                                             #
+#                                                                             #
+#                                                                             #
+def k_medioids(clusters):
+    
+    new_clusters = []
+    
+    return new_clusters
+
 
 
 
