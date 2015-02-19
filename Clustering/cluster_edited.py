@@ -100,6 +100,8 @@ class ActiveSite:
     def __init__(self, name):
         self.name = name
         self.residues = []
+        self.multimer = False
+        self.nmer = 1
         
 
     # Overload the __repr__ operator to make printing simpler.
@@ -178,7 +180,7 @@ def check_multimer(site):
             check = True  
     return check, n
 
-
+####################################################################################
 
 ###############################################################################
 # calculates the distance between two residues primary carbons                #
@@ -188,6 +190,9 @@ def compute_Carbon_dist(res1, res2):
     res2C = res2.atoms[2]
     dist = distance.euclidean(res1C.coords, res2C.coords)
     return dist
+###############################################################################
+
+
 ###############################################################################
 #
 #calculate the major axes within an active site                               #
@@ -233,25 +238,42 @@ def compute_similarity(site_A, site_B):
 def cluster_by_partitioning(active_sites):
 
 
-  # Fill in your code here!
-
+# Part of the distance metric will be the multimer-state of the enzyme site
+#so first calculate that and save it as a feature 
+    
     active_sites = read_active_sites('/home/gogqou/Documents/Classes/bmi-203-hw3/active sites')
     print type(active_sites)
     
-    
+    nmers = [1]
     for j in range(len(active_sites)):
         [check, n]=check_multimer(active_sites[j])
+         
         if check is True:
-            print active_sites[j], check, n
-            residues= active_sites[j].residues
-            print residues
-        '''
+            active_sites[j].multimer = True
+            active_sites[j].nmer = n
+            if n in nmers:
+                continue
+            else:
+                nmers.append(n)
+        
+        #print active_sites[j], active_sites[j].multimer, active_sites[j].nmer
+    nmers = sorted(nmers)
+    clusters = [[] for i in range(len(nmers))]
+    labeled_clusters = zip(nmers, clusters)
+    for m in range(len(nmers)):
+        for j in range(len(active_sites)):
+            if active_sites[j].nmer == nmers[m]:
+                clusters[m].append(active_sites[j])    
+    for k in range(len(clusters)):
+        print labeled_clusters[k]
+    
+    '''
         for i in range(len(residues)):
             dist =compute_Carbon_dist(residues[0], residues[i])
             print residues[0], residues[i], dist
-        '''   
+    '''   
     
-    return []
+    return labeled_clusters
 
 ###############################################################################
 
