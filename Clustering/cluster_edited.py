@@ -281,14 +281,7 @@ def cluster_by_partitioning(active_sites):
 # Part of the distance metric will be the multimer-state of the enzyme site
 #so first calculate that and save it as a feature 
     clusters = []
-    '''
-    residues = active_sites[1].residues
-    for i in range(len(residues)):
-        print residues[i].avg_coords
-        atoms = residues[i].atoms
-        for j in range(len(atoms)):
-            print atoms[j].coords
-    '''
+
 # next would need to be find representative position for sets of residues in an nmer
 #lets you find a shape 
 #find the x, y, and z deviation from a centralized line?
