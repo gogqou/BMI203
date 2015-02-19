@@ -123,7 +123,6 @@ class ActiveSite:
 
 def read_active_sites(dir):
     files = glob.glob(dir + '/*.pdb')
-
     active_sites = []
     for file in files:
         if os.name == 'nt':
@@ -255,13 +254,12 @@ def cluster_by_partitioning(active_sites):
 # Part of the distance metric will be the multimer-state of the enzyme site
 #so first calculate that and save it as a feature 
     
-    active_sites = read_active_sites('/home/gogqou/Documents/Classes/bmi-203-hw3/active sites')
+    active_sites = read_active_sites('/home/gogqou/Documents/Classes/bmi-203-hw3/active_sites')
     print type(active_sites)
     
     nmers = [1]
     for j in range(len(active_sites)):
         [check, n, monomer_num]=check_multimer(active_sites[j])
-        print active_sites[j].center 
         active_sites[j].monomersize= monomer_num #assigns the monomer size from count performed in check_multimer
         if check is True:
             active_sites[j].multimer = True
@@ -299,7 +297,7 @@ def cluster_by_partitioning(active_sites):
             print residues[0], residues[i], dist
     '''   
     
-    return labeled_clusters
+    return clusters
 
 ###############################################################################
 
@@ -320,7 +318,7 @@ def cluster_hierarchically(active_sites):
 # Fill in your code here!
     #populate distance matrix
     
-    active_sites = read_active_sites('/home/gogqou/Documents/Classes/bmi-203-hw3/active sites')
+    #active_sites = read_active_sites('/home/gogqou/Documents/Classes/bmi-203-hw3/active sites')
     
     distance_matrix = np.zeros([len(active_sites), len(active_sites)])
     for i in range(len(active_sites)):
@@ -330,16 +328,20 @@ def cluster_hierarchically(active_sites):
             else:
                 
                 distance_matrix[i,j] = compute_similarity(active_sites[i], active_sites[j])
-    complete_linkage
-
-    return []
+    clusterings = [[] for k in range(8)]
+    L = 0
+    epsilon = 1000
+    while epsilon < 100:
+        [clusters, epsilon] = complete_linkage (distance_matrix, active_sites)
+        clusterings[L].append(clusters)
+    return clusterings
 
 ########################################################################################################
 
-def complete_linkage(distance_matrix, clusters, epsilon = 10):
+def complete_linkage(distance_matrix, clusters):
     #epsilon is the threshold / cutoff maximum distance between two clusters where we stop agglomerating....
-    
-    return clusters
+    epsilon = min(distance_matrix)
+    return clusters, epsilon
 ###############################################################################
 
 
@@ -357,8 +359,8 @@ def write_clustering(filename, clusters):
 
     for i in range(len(clusters)):
         out.write("\nCluster %d\n--------------\n" % i)
-    for j in range(len(clusters[i])):
-        out.write("%s\n" % clusters[i][j])
+        for j in range(len(clusters[i])):
+            out.write("%s\n" % clusters[i][j])
 
     out.close()
 
@@ -380,10 +382,10 @@ def write_mult_clusterings(filename, clusterings):
     for i in range(len(clusterings)):
         clusters = clusterings[i]
 
-    for j in range(len(clusters)):
-        out.write("\nCluster %d\n------------\n" % j)
-    for k in range(len(clusters[j])):
-        out.write("%s\n" % clusters[j][k])
+        for j in range(len(clusters)):
+            out.write("\nCluster %d\n------------\n" % j)
+            for k in range(len(clusters[j])):
+                out.write("%s\n" % clusters[j][k])
 
     out.close()
 
@@ -410,7 +412,7 @@ def main():
     if sys.argv[1][0:2] == '-P':
         print "Clustering using Partitioning method"
         clustering = cluster_by_partitioning(active_sites)
-        #write_clustering(sys.argv[3], clustering)
+        write_clustering(sys.argv[3], clustering)
     
     if sys.argv[1][0:2] == '-H':
         print "Clustering using hierarchical method"
