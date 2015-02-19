@@ -280,31 +280,7 @@ def cluster_by_partitioning(active_sites):
 
 # Part of the distance metric will be the multimer-state of the enzyme site
 #so first calculate that and save it as a feature 
-    
-    active_sites = read_active_sites('/home/gogqou/Documents/Classes/bmi-203-hw3/active_sites')
-    print type(active_sites)
-    
-    nmers = [1]
-    for j in range(len(active_sites)):
-        [check, n, monomer_num]=check_multimer(active_sites[j])
-        active_sites[j].monomersize= monomer_num #assigns the monomer size from count performed in check_multimer
-        if check is True:
-            active_sites[j].multimer = True
-            active_sites[j].nmer = n
-            if n in nmers:
-                continue
-            else:
-                nmers.append(n)
-
-    nmers = sorted(nmers)
-    clusters = [[] for i in range(len(nmers))]
-    labeled_clusters = zip(nmers, clusters)
-    for m in range(len(nmers)):
-        for j in range(len(active_sites)):
-            if active_sites[j].nmer == nmers[m]:
-                clusters[m].append(active_sites[j])    
-    for k in range(len(clusters)):
-        print labeled_clusters[k]
+    clusters = []
     '''
     residues = active_sites[1].residues
     for i in range(len(residues)):
