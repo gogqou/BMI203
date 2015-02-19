@@ -315,59 +315,60 @@ def cluster_by_partitioning(active_sites):
 def cluster_hierarchically(active_sites):
 
 
-# Fill in your code here!
     #populate distance matrix
     
-    #active_sites = read_active_sites('/home/gogqou/Documents/Classes/bmi-203-hw3/active sites')
     clusters = [[] for i in range(len(active_sites))]
     for n in range(len(active_sites)):
         clusters[n].append(active_sites[n])
-    print clusters
-    dist_matrix_dict = {}
+    #dist_matrix_dict = {}
     distance_matrix = np.zeros([len(active_sites), len(active_sites)])
+    print 'making distance matrix'
     for i in range(len(active_sites)):
         for j in range(i, len(active_sites)):
             if i == j:
                 distance_matrix[i,j] = 0
             else:
+                
                 distance_matrix[i,j] = compute_similarity(active_sites[i], active_sites[j])
-                dist_matrix_dict[(active_sites[i], active_sites[j])]= distance_matrix[i,j]
-                dist_matrix_dict[(active_sites[j], active_sites[i])]= distance_matrix[i,j]
+                #dist_matrix_dict[(active_sites[i], active_sites[j])]= distance_matrix[i,j]
+                #dist_matrix_dict[(active_sites[j], active_sites[i])]= distance_matrix[i,j]
                 distance_matrix[j,i] = compute_similarity(active_sites[i], active_sites[j])
-    clusterings = [[] for k in range(130)]
+    clusterings = [[] for k in range(len(clusters))]
     clusterings[0].append(list(clusters))
     L = 1
     epsilon = 10
-    #print distance_matrix
-    current_distance_matrix = distance_matrix
-    while epsilon < 400:
-        [current_distance_matrix, clusters, epsilon] = complete_linkage (dist_matrix_dict, current_distance_matrix, clusters)
+    current_distance_matrix = distance_matrix.copy()
+    #epsilon is the threshold / cutoff maximum distance between two clusters where we stop agglomerating....
+    while epsilon < 500:
+        [current_distance_matrix, clusters, epsilon] = complete_linkage (current_distance_matrix, clusters)
         clusterings[L].append(list(clusters))
+        print 'combining clusters,', L, 'iterations'
         L = L+1
     
-    return clusterings
+    return clusterings[:L]
 
 ########################################################################################################
 
-def complete_linkage(original_distance_matrix_dict, current_distance_matrix, clusters):
-    #epsilon is the threshold / cutoff maximum distance between two clusters where we stop agglomerating....
+def complete_linkage(current_distance_matrix, clusters):
+    
     minval= np.min(current_distance_matrix[np.nonzero(current_distance_matrix)])
-    #print minval
-    #print np.nonzero(current_distance_matrix ==minval)
     [x,y] = np.nonzero(current_distance_matrix ==minval)[0]
     new_distance_matrix = current_distance_matrix.copy()
     size = current_distance_matrix.shape
     for i in range(size[0]):
+        #the new distances are the max of the existing distances, which were already the max of the respective combinations
+        #this prevents you from having to do all the comparisons again
+        #need to repopulate the row and column
         new_distance_matrix[i,x] = max(new_distance_matrix[i,x], new_distance_matrix[i,y])
         new_distance_matrix[x,i] = max(new_distance_matrix[i,x], new_distance_matrix[i,y])
-    
+    #get rid of the old cluster that was combined into the new one
     new_distance_matrix=np.delete(new_distance_matrix,y,1)
     new_distance_matrix=np.delete(new_distance_matrix,y,0)
+    #distance to self still 0
     new_distance_matrix[x,x] = 0
     clusters[x]= clusters[x]+clusters[y][0:]
     del clusters[y]
     epsilon= np.min(new_distance_matrix[np.nonzero(new_distance_matrix)])
-    #epsilon = 6000
     return new_distance_matrix, clusters, epsilon
 ###############################################################################
 
