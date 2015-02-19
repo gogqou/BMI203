@@ -102,6 +102,8 @@ class ActiveSite:
         self.residues = []
         self.multimer = False
         self.nmer = 1
+        self.center=[0.0, 0.0, 0.0]
+        self.monomersize = 0
         
 
     # Overload the __repr__ operator to make printing simpler.
@@ -157,11 +159,15 @@ def read_active_sites(dir):
                 residue.sum_coords = np.add(residue.sum_coords, atom.coords)
           
             else:  # I've reached a TER card
-                active_site.residues.append(residue)       
+                active_site.residues.append(residue)
+                active_site.center =  active_site.center + residue.sum_coords 
             
-            #temp_atoms = residue.atoms 
-            #residue.avg_coords = residue.sum_coords/len(temp_atoms)
+                temp_atoms = residue.atoms 
+                residue.avg_coords = residue.sum_coords/len(temp_atoms)
+        temp_residues = active_site.residues
+        active_site.center = active_site.center/len(temp_residues)
         active_sites.append(active_site)
+        
     
     print "Read in %d active sites" % len(active_sites)
     
@@ -174,11 +180,19 @@ def check_multimer(site):
     n = 1
     check = False
     residues = site.residues
+    monomer_num = len(residues)
     for i in range(1,len(residues)):
         if residues[0].number==residues[i].number:
-            n = n+1
+            monomer_num = min(monomer_num, i) 
+            #if this is a multimer, count how many residues consist the monomer
+            #right now this gives the index of the first repeat, which gives
+            #the right answer if we're looking for size of monomer, but remember 
+            #to subtract by one if you want the actual index of the last non repeat
+            n = n+1 #every time we hit a repeat, we increment the count for the 
+            #number of monomers
             check = True  
-    return check, n
+            #if we hit a repeat, we change the check to True, meaning this is a multimer
+    return check, n, monomer_num
 
 ####################################################################################
 
@@ -217,7 +231,7 @@ def compute_similarity(site_A, site_B):
 
     similarity = 0.0
     
-    #Fill in your code here!
+    similarity = distance.euclidean(site_A.center, site_B.center)
     #sum of all the distances between primary carbons?
 
     return similarity
@@ -246,8 +260,9 @@ def cluster_by_partitioning(active_sites):
     
     nmers = [1]
     for j in range(len(active_sites)):
-        [check, n]=check_multimer(active_sites[j])
-         
+        [check, n, monomer_num]=check_multimer(active_sites[j])
+        print active_sites[j].center 
+        active_sites[j].monomersize= monomer_num #assigns the monomer size from count performed in check_multimer
         if check is True:
             active_sites[j].multimer = True
             active_sites[j].nmer = n
@@ -255,8 +270,7 @@ def cluster_by_partitioning(active_sites):
                 continue
             else:
                 nmers.append(n)
-        
-        #print active_sites[j], active_sites[j].multimer, active_sites[j].nmer
+
     nmers = sorted(nmers)
     clusters = [[] for i in range(len(nmers))]
     labeled_clusters = zip(nmers, clusters)
@@ -266,7 +280,19 @@ def cluster_by_partitioning(active_sites):
                 clusters[m].append(active_sites[j])    
     for k in range(len(clusters)):
         print labeled_clusters[k]
-    
+    '''
+    residues = active_sites[1].residues
+    for i in range(len(residues)):
+        print residues[i].avg_coords
+        atoms = residues[i].atoms
+        for j in range(len(atoms)):
+            print atoms[j].coords
+    '''
+# next would need to be find representative position for sets of residues in an nmer
+#lets you find a shape 
+#find the x, y, and z deviation from a centralized line?
+
+
     '''
         for i in range(len(residues)):
             dist =compute_Carbon_dist(residues[0], residues[i])
@@ -291,11 +317,29 @@ def cluster_by_partitioning(active_sites):
 def cluster_hierarchically(active_sites):
 
 
-  # Fill in your code here!
-
+# Fill in your code here!
+    #populate distance matrix
+    
+    active_sites = read_active_sites('/home/gogqou/Documents/Classes/bmi-203-hw3/active sites')
+    
+    distance_matrix = np.zeros([len(active_sites), len(active_sites)])
+    for i in range(len(active_sites)):
+        for j in range(i, len(active_sites)):
+            if i == j:
+                distance_matrix[i,j] = 0
+            else:
+                
+                distance_matrix[i,j] = compute_similarity(active_sites[i], active_sites[j])
+    complete_linkage
 
     return []
 
+########################################################################################################
+
+def complete_linkage(distance_matrix, clusters, epsilon = 10):
+    #epsilon is the threshold / cutoff maximum distance between two clusters where we stop agglomerating....
+    
+    return clusters
 ###############################################################################
 
 
