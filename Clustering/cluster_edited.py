@@ -319,46 +319,57 @@ def cluster_hierarchically(active_sites):
     #populate distance matrix
     
     #active_sites = read_active_sites('/home/gogqou/Documents/Classes/bmi-203-hw3/active sites')
-    
+    initial_clusters = [[] for i in range(len(active_sites))]
+    for n in range(len(active_sites)):
+        initial_clusters[n].append(active_sites[n])
+    print initial_clusters
+    dist_matrix_dict = {}
     distance_matrix = np.zeros([len(active_sites), len(active_sites)])
     for i in range(len(active_sites)):
         for j in range(i, len(active_sites)):
             if i == j:
                 distance_matrix[i,j] = 0
             else:
-                
                 distance_matrix[i,j] = compute_similarity(active_sites[i], active_sites[j])
+                dist_matrix_dict[(active_sites[i], active_sites[j])]= distance_matrix[i,j]
+                dist_matrix_dict[(active_sites[j], active_sites[i])]= distance_matrix[i,j]
                 distance_matrix[j,i] = compute_similarity(active_sites[i], active_sites[j])
     clusterings = [[] for k in range(8)]
     L = 0
     epsilon = 10
     print distance_matrix
-    while epsilon < 5000:
-        [clusters, epsilon] = complete_linkage (distance_matrix, active_sites)
+    current_distance_matrix = distance_matrix
+    while epsilon < 400:
+        [current_distance_matrix, clusters, epsilon] = complete_linkage (dist_matrix_dict, current_distance_matrix, initial_clusters)
         print epsilon
         clusterings[L].append(clusters)
     return clusterings
 
 ########################################################################################################
 
-def complete_linkage(distance_matrix, clusters):
+def complete_linkage(original_distance_matrix_dict, current_distance_matrix, clusters):
     #epsilon is the threshold / cutoff maximum distance between two clusters where we stop agglomerating....
-    #[x,y] = np.unravel_index(np.min(distance_matrix[np.nonzero(distance_matrix)]), distance_matrix.shape)
-    minval= np.min(distance_matrix[np.nonzero(distance_matrix)])
-    [x,y] = np.nonzero(distance_matrix ==minval)[0]
-    new_distance_matrix = distance_matrix.copy()
-    size = distance_matrix.shape
-    print size
+    minval= np.min(current_distance_matrix[np.nonzero(current_distance_matrix)])
+    print minval
+    print np.nonzero(current_distance_matrix ==minval)
+    [x,y] = np.nonzero(current_distance_matrix ==minval)[0]
+    new_distance_matrix = current_distance_matrix.copy()
+    size = current_distance_matrix.shape
     for i in range(size[0]):
-        
         new_distance_matrix[i,x] = max(new_distance_matrix[i,x], new_distance_matrix[i,y])
-    print 'deleted'
+        new_distance_matrix[x,i] = max(new_distance_matrix[i,x], new_distance_matrix[i,y])
+    
     new_distance_matrix=np.delete(new_distance_matrix,y,1)
+    new_distance_matrix=np.delete(new_distance_matrix,y,0)
+    new_distance_matrix[x,x] = 0
+    print 'pop'
+    new_cluster = clusters[x].append((clusters[y][0:]))
+    del clusters[y]
     print new_distance_matrix
-    epsilon= np.min(distance_matrix[np.nonzero(new_distance_matrix)])
-    epsilon = distance_matrix[x,y]
-    epsilon = 6000
-    return clusters, epsilon
+    print clusters
+    epsilon= np.min(new_distance_matrix[np.nonzero(new_distance_matrix)])
+    #epsilon = 6000
+    return new_distance_matrix, clusters, epsilon
 ###############################################################################
 
 
