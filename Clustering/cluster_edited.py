@@ -328,11 +328,14 @@ def cluster_hierarchically(active_sites):
             else:
                 
                 distance_matrix[i,j] = compute_similarity(active_sites[i], active_sites[j])
+                distance_matrix[j,i] = compute_similarity(active_sites[i], active_sites[j])
     clusterings = [[] for k in range(8)]
     L = 0
-    epsilon = 1000
-    while epsilon < 100:
+    epsilon = 10
+    print distance_matrix
+    while epsilon < 5000:
         [clusters, epsilon] = complete_linkage (distance_matrix, active_sites)
+        print epsilon
         clusterings[L].append(clusters)
     return clusterings
 
@@ -340,7 +343,21 @@ def cluster_hierarchically(active_sites):
 
 def complete_linkage(distance_matrix, clusters):
     #epsilon is the threshold / cutoff maximum distance between two clusters where we stop agglomerating....
-    epsilon = min(distance_matrix)
+    #[x,y] = np.unravel_index(np.min(distance_matrix[np.nonzero(distance_matrix)]), distance_matrix.shape)
+    minval= np.min(distance_matrix[np.nonzero(distance_matrix)])
+    [x,y] = np.nonzero(distance_matrix ==minval)[0]
+    new_distance_matrix = distance_matrix.copy()
+    size = distance_matrix.shape
+    print size
+    for i in range(size[0]):
+        
+        new_distance_matrix[i,x] = max(new_distance_matrix[i,x], new_distance_matrix[i,y])
+    print 'deleted'
+    new_distance_matrix=np.delete(new_distance_matrix,y,1)
+    print new_distance_matrix
+    epsilon= np.min(distance_matrix[np.nonzero(new_distance_matrix)])
+    epsilon = distance_matrix[x,y]
+    epsilon = 6000
     return clusters, epsilon
 ###############################################################################
 
@@ -397,6 +414,8 @@ def write_mult_clusterings(filename, clusterings):
 
 
 def main():
+    np.set_printoptions(threshold=1000, linewidth=1000, precision = 5, suppress = False)
+    
     # Some quick stuff to make sure the program is called correctly
     if len(sys.argv) < 4:
         print "Usage: cluster.py [-P| -H] <pdb directory> <output file>"
