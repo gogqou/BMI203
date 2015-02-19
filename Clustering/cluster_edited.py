@@ -334,7 +334,8 @@ def cluster_hierarchically(active_sites):
                 dist_matrix_dict[(active_sites[i], active_sites[j])]= distance_matrix[i,j]
                 dist_matrix_dict[(active_sites[j], active_sites[i])]= distance_matrix[i,j]
                 distance_matrix[j,i] = compute_similarity(active_sites[i], active_sites[j])
-    clusterings = [[] for k in range(8)]
+    clusterings = [[] for k in range(9)]
+    print clusterings
     L = 0
     epsilon = 10
     print distance_matrix
@@ -343,6 +344,10 @@ def cluster_hierarchically(active_sites):
         [current_distance_matrix, clusters, epsilon] = complete_linkage (dist_matrix_dict, current_distance_matrix, initial_clusters)
         print epsilon
         clusterings[L].append(clusters)
+        L = L+1
+    for m in range(L):
+        print m
+        print clusterings[m]
     return clusterings
 
 ########################################################################################################
@@ -363,7 +368,7 @@ def complete_linkage(original_distance_matrix_dict, current_distance_matrix, clu
     new_distance_matrix=np.delete(new_distance_matrix,y,0)
     new_distance_matrix[x,x] = 0
     print 'pop'
-    new_cluster = clusters[x].append((clusters[y][0:]))
+    clusters[x]= clusters[x]+clusters[y][0:]
     del clusters[y]
     print new_distance_matrix
     print clusters
