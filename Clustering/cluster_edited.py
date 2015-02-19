@@ -319,10 +319,10 @@ def cluster_hierarchically(active_sites):
     #populate distance matrix
     
     #active_sites = read_active_sites('/home/gogqou/Documents/Classes/bmi-203-hw3/active sites')
-    initial_clusters = [[] for i in range(len(active_sites))]
+    clusters = [[] for i in range(len(active_sites))]
     for n in range(len(active_sites)):
-        initial_clusters[n].append(active_sites[n])
-    print initial_clusters
+        clusters[n].append(active_sites[n])
+    print clusters
     dist_matrix_dict = {}
     distance_matrix = np.zeros([len(active_sites), len(active_sites)])
     for i in range(len(active_sites)):
@@ -334,20 +334,17 @@ def cluster_hierarchically(active_sites):
                 dist_matrix_dict[(active_sites[i], active_sites[j])]= distance_matrix[i,j]
                 dist_matrix_dict[(active_sites[j], active_sites[i])]= distance_matrix[i,j]
                 distance_matrix[j,i] = compute_similarity(active_sites[i], active_sites[j])
-    clusterings = [[] for k in range(9)]
-    print clusterings
-    L = 0
+    clusterings = [[] for k in range(130)]
+    clusterings[0].append(list(clusters))
+    L = 1
     epsilon = 10
-    print distance_matrix
+    #print distance_matrix
     current_distance_matrix = distance_matrix
     while epsilon < 400:
-        [current_distance_matrix, clusters, epsilon] = complete_linkage (dist_matrix_dict, current_distance_matrix, initial_clusters)
-        print epsilon
-        clusterings[L].append(clusters)
+        [current_distance_matrix, clusters, epsilon] = complete_linkage (dist_matrix_dict, current_distance_matrix, clusters)
+        clusterings[L].append(list(clusters))
         L = L+1
-    for m in range(L):
-        print m
-        print clusterings[m]
+    
     return clusterings
 
 ########################################################################################################
@@ -355,8 +352,8 @@ def cluster_hierarchically(active_sites):
 def complete_linkage(original_distance_matrix_dict, current_distance_matrix, clusters):
     #epsilon is the threshold / cutoff maximum distance between two clusters where we stop agglomerating....
     minval= np.min(current_distance_matrix[np.nonzero(current_distance_matrix)])
-    print minval
-    print np.nonzero(current_distance_matrix ==minval)
+    #print minval
+    #print np.nonzero(current_distance_matrix ==minval)
     [x,y] = np.nonzero(current_distance_matrix ==minval)[0]
     new_distance_matrix = current_distance_matrix.copy()
     size = current_distance_matrix.shape
@@ -367,11 +364,8 @@ def complete_linkage(original_distance_matrix_dict, current_distance_matrix, clu
     new_distance_matrix=np.delete(new_distance_matrix,y,1)
     new_distance_matrix=np.delete(new_distance_matrix,y,0)
     new_distance_matrix[x,x] = 0
-    print 'pop'
     clusters[x]= clusters[x]+clusters[y][0:]
     del clusters[y]
-    print new_distance_matrix
-    print clusters
     epsilon= np.min(new_distance_matrix[np.nonzero(new_distance_matrix)])
     #epsilon = 6000
     return new_distance_matrix, clusters, epsilon
@@ -414,11 +408,13 @@ def write_mult_clusterings(filename, clusterings):
 
     for i in range(len(clusterings)):
         clusters = clusterings[i]
-
         for j in range(len(clusters)):
-            out.write("\nCluster %d\n------------\n" % j)
+            out.write("\nClustering %d\n---------------***--------------------------\n" % i)
             for k in range(len(clusters[j])):
-                out.write("%s\n" % clusters[j][k])
+                out.write("\nCluster %d\n------------\n" % k)
+                for m in range(len(clusters[j][k])):
+                    
+                    out.write("%s\n" % clusters[j][k][m])
 
     out.close()
 
