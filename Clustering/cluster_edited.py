@@ -48,7 +48,7 @@ import sys, os
 import glob 
 import random
 import numpy as np
-
+import math
 
 ###############################################################################
 #                                                                             #
@@ -283,14 +283,17 @@ def cluster_by_partitioning(active_sites):
     [clusters, active_sites] = nmers(active_sites)
     print active_sites
     # randomly pick k centers
-    centers = random.sample(xrange(0, len(active_sites)), k)
+    centers_indices = random.sample(xrange(0, len(active_sites)), k)
+    centers = []
+    for i in range(len(centers_indices)):
+        centers.append(active_sites[centers_indices[i]])
     print centers
     #centers just gives you the indices, not the actual instances
     #do k-medioids_clusters--this function takes the centers and clusters, calculates new clusters
     # k_medioids_centers takes new clusterings and calculates new centers
     clusters= k_medioids_clusters(active_sites, clusters, centers)
-    epsilon = obj_function(clusters, centers)
-    while epsilon>10:
+    epsilon = obj_function( clusters, centers)
+    while epsilon>100:
         clusters= k_medioids_clusters(active_sites, clusters, centers)
         current_obj_func = obj_function(clusters, centers)
         centers = k_medioids_centers(clusters, centers)
@@ -302,11 +305,13 @@ def cluster_by_partitioning(active_sites):
 
 ###############################################################################
 def obj_function(clusters, centers):
-    obj_func = 0
-    for i in range(len(clusters)):
-        continue
-    
-    
+    distance_matrix = np.zeros([len(centers), len(centers)])
+    for i in range(len(centers)):
+        for j in range(len(clusters[i])):
+            distance_matrix[j,i] = math.pow(compute_similarity(clusters[i][j], centers[i]), 2)
+    distance_matrix = distance_matrix[:len(centers)]
+    obj_func = np.sum(distance_matrix)
+    print obj_func
     return obj_func
 ###############################################################################
 #calculates new clusterings from a set of centers                             #
@@ -315,22 +320,22 @@ def obj_function(clusters, centers):
 def k_medioids_clusters(active_sites, clusters, centers):
     distance_matrix = np.zeros([len(active_sites), len(centers)])
     new_clusters = [[] for i in range(len(centers))]
-    print len(centers)
     for i in range(len(active_sites)):
         for j in range(len(centers)):
-            distance_matrix[i,j] = compute_similarity(active_sites[i], active_sites[centers[j]])
-    print distance_matrix
+            distance_matrix[i,j] = compute_similarity(active_sites[i], centers[j])
     max_indices= np.argmin(distance_matrix, 1)
-    print max_indices
     for k in range(len(max_indices)):
         new_clusters[max_indices[k]].append(active_sites[k])
-    print new_clusters
-    
-    
     return new_clusters
 
 def k_medioids_centers(clusters, centers):
-    
+    sum_coords = np.zeros([len(clusters),3])
+    for i in range(len(centers)):
+        
+        for j in range(len(clusters[i])):
+            sum_coords[i] = clusters[i][j].center+sum_coords[i]
+        sum_coords[i]=sum_coords[i]/len(clusters[i])
+    print sum_coords
     new_centers = []
     
     return new_centers
