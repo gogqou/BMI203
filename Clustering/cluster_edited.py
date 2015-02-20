@@ -46,7 +46,7 @@ from string import *
 from math import *
 import sys, os
 import glob 
-
+import random
 import numpy as np
 
 
@@ -266,7 +266,7 @@ def compute_similarity(site_A, site_B):
 
 
 
-###############################################################################
+########################################################################################################################################
 #                                                                             #
 # Cluster a given set of ActiveSite instances using a partitioning method.    #
 #                                                                             #
@@ -276,38 +276,64 @@ def compute_similarity(site_A, site_B):
 #         ActiveSite instances)                                               #
 
 def cluster_by_partitioning(active_sites):
-
+    k = len(active_sites)/2-1
 
 # Part of the distance metric will be the multimer-state of the enzyme site
 #so first calculate that and save it as a feature 
-    clusters = []
-
-# next would need to be find representative position for sets of residues in an nmer
-#lets you find a shape 
-#find the x, y, and z deviation from a centralized line?
-
-
-    '''
-        for i in range(len(residues)):
-            dist =compute_Carbon_dist(residues[0], residues[i])
-            print residues[0], residues[i], dist
-    '''   
+    [clusters, active_sites] = nmers(active_sites)
+    print active_sites
+    # randomly pick k centers
+    centers = random.sample(xrange(0, len(active_sites)), k)
+    print centers
+    #centers just gives you the indices, not the actual instances
+    #do k-medioids_clusters--this function takes the centers and clusters, calculates new clusters
+    # k_medioids_centers takes new clusterings and calculates new centers
+    clusters= k_medioids_clusters(active_sites, clusters, centers)
+    epsilon = obj_function(clusters, centers)
+    while epsilon>10:
+        clusters= k_medioids_clusters(active_sites, clusters, centers)
+        current_obj_func = obj_function(clusters, centers)
+        centers = k_medioids_centers(clusters, centers)
+        epsilon = current_obj_func-obj_function(clusters, centers)
     
     return clusters
 
 ###############################################################################
 
 ###############################################################################
-#                                                                             #
-#                                                                             #
-#                                                                             #
-def k_medioids(clusters):
+def obj_function(clusters, centers):
+    obj_func = 0
+    for i in range(len(clusters)):
+        continue
     
-    new_clusters = []
+    
+    return obj_func
+###############################################################################
+#calculates new clusterings from a set of centers                             #
+#calculates new centers/medioids from a new set of clusters                   #
+#                                                                             #
+def k_medioids_clusters(active_sites, clusters, centers):
+    distance_matrix = np.zeros([len(active_sites), len(centers)])
+    new_clusters = [[] for i in range(len(centers))]
+    print len(centers)
+    for i in range(len(active_sites)):
+        for j in range(len(centers)):
+            distance_matrix[i,j] = compute_similarity(active_sites[i], active_sites[centers[j]])
+    print distance_matrix
+    max_indices= np.argmin(distance_matrix, 1)
+    print max_indices
+    for k in range(len(max_indices)):
+        new_clusters[max_indices[k]].append(active_sites[k])
+    print new_clusters
+    
     
     return new_clusters
 
-
+def k_medioids_centers(clusters, centers):
+    
+    new_centers = []
+    
+    return new_centers
 
 
 ###############################################################################
