@@ -102,6 +102,7 @@ class ActiveSite:
         self.residues = []
         self.multimer = False
         self.nmer = 1
+        self.sum_coords = [0.0, 0.0, 0.0]
         self.center=[0.0, 0.0, 0.0] #Euclidean center of active site--average pos of residues 
         self.monomersize = 0 #number of residues consisting monomer repeat
         self.avg_res_dist = 0 #average residue distance from active site center
@@ -164,12 +165,11 @@ def read_active_sites(dir):
           
             else:  # I've reached a TER card
                 active_site.residues.append(residue)
-                active_site.center =  active_site.center + residue.sum_coords 
-            
                 temp_atoms = residue.atoms 
                 residue.avg_coords = residue.sum_coords/len(temp_atoms)
-        temp_residues = active_site.residues
-        active_site.center = active_site.center/len(temp_residues)
+                active_site.sum_coords =np.add(residue.avg_coords, active_site.sum_coords)
+        temp_residues = active_site.residues 
+        active_site.center = active_site.sum_coords/len(temp_residues)   
         active_sites.append(active_site)
         
     
@@ -208,6 +208,7 @@ def check_multimer(site):
 def nmers(active_sites):
     
     nmers = [1]
+    labeled_clusters = []
     for j in range(len(active_sites)):
         [check, n, monomer_num]=check_multimer(active_sites[j])
         active_sites[j].monomersize= monomer_num #assigns the monomer size from count performed in check_multimer
@@ -218,7 +219,7 @@ def nmers(active_sites):
                 continue
             else:
                 nmers.append(n)
-
+    '''
     nmers = sorted(nmers)
     clusters = [[] for i in range(len(nmers))]
     labeled_clusters = zip(nmers, clusters)
@@ -228,7 +229,7 @@ def nmers(active_sites):
                 clusters[m].append(active_sites[j])    
     for k in range(len(clusters)):
         print labeled_clusters[k]
-    
+    '''
     return labeled_clusters, active_sites
 
 
@@ -247,7 +248,14 @@ def residue_dist_center(active_sites):
         residues = active_sites[i].residues
         distance_vector = np.zeros([len(residues), 1])
         for j in range(len(residues)):
-            distance_vector[j] = distance.euclidean(active_sites[i].center, residues[j].avg_coords)
+            #choose this way of calculating distance if want to use avg coords
+            # of all the atoms in the residue
+            #distance_vector[j] = distance.euclidean(active_sites[i].center, residues[j].avg_coords)
+            
+            #choose this way of calculating distance if want to use the central 
+            #carbon as the representative atom of the residue
+            distance_vector[j] = distance.euclidean(active_sites[i].center, residues[j].atoms[2].coords)
+        #print distance_vector
         active_sites[i].avg_res_dist = np.sum(distance_vector)/len(residues)
         active_sites[i].stdev_res_dist = np.std(distance_vector)
     return active_sites
@@ -316,11 +324,13 @@ def cluster_by_partitioning(active_sites):
     # k_means_centers takes new clusterings and calculates new centers
     clusters= k_means_clusters(active_sites, clusters, centers)
     epsilon = obj_function( clusters, centers)
+    '''
     while epsilon>100:
         clusters= k_means_clusters(active_sites, clusters, centers)
         current_obj_func = obj_function(clusters, centers)
         centers = k_means_centers(clusters, centers)
         epsilon = current_obj_func-obj_function(clusters, centers)
+    '''
     
     return clusters
 #                                                                             #
