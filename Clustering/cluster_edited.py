@@ -243,11 +243,20 @@ def compute_Carbon_dist(res1, res2):
     dist = distance.euclidean(res1C.coords, res2C.coords)
     return dist
 ###############################################################################
+# calculates the distance between every residue and the site center           #
+# since we're looping through anyway, count unique residues                   #
 def residue_dist_center(active_sites):
+    
     for i in range(len(active_sites)):
         residues = active_sites[i].residues
+        unique_residues = []
         distance_vector = np.zeros([len(residues), 1])
         for j in range(len(residues)):
+            if residues[j].type not in unique_residues:
+                unique_residues.append(residues[j].type)
+            else:
+                continue
+                
             #choose this way of calculating distance if want to use avg coords
             # of all the atoms in the residue
             #distance_vector[j] = distance.euclidean(active_sites[i].center, residues[j].avg_coords)
@@ -255,7 +264,8 @@ def residue_dist_center(active_sites):
             #choose this way of calculating distance if want to use the central 
             #carbon as the representative atom of the residue
             distance_vector[j] = distance.euclidean(active_sites[i].center, residues[j].atoms[2].coords)
-        #print distance_vector
+        active_sites[i].unique_res = unique_residues
+        print active_sites[i].unique_res
         active_sites[i].avg_res_dist = np.sum(distance_vector)/len(residues)
         active_sites[i].stdev_res_dist = np.std(distance_vector)
     return active_sites
