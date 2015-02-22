@@ -13,7 +13,7 @@ hierarchical:
 bottom up
 
 partitioning:
-k medioids 
+k mean 
 '''
 #!C:/Python22/python.exe
 
@@ -102,8 +102,13 @@ class ActiveSite:
         self.residues = []
         self.multimer = False
         self.nmer = 1
-        self.center=[0.0, 0.0, 0.0]
-        self.monomersize = 0
+        self.center=[0.0, 0.0, 0.0] #Euclidean center of active site--average pos of residues 
+        self.monomersize = 0 #number of residues consisting monomer repeat
+        self.avg_res_dist = 0 #average residue distance from active site center
+        self.stdev_res_dist = 0 #st deviation of residue distance from site center
+        self.farthest_res = 0 #distance of residue farthest from center
+        self.nearest_res = 0 #distance of residue closest to center
+        
         
 
     # Overload the __repr__ operator to make printing simpler.
@@ -233,16 +238,18 @@ def compute_Carbon_dist(res1, res2):
 ###############################################################################
 
 
-###############################################################################
+###################################################################################
 #
-#calculate the major axes within an active site                               #
-# basically figure out the largest distance between major carbons             #
-def compute_major_axes(site):
+#calculate the tanimoto coefficient based on comparison of AAs in two active sites#
+#                                                                                 #
+def tanimoto(site_A, site_B):
     
-    length = 0
-    axes = 0
+    tanimoto_coeff=0
     
-    return axes, length
+    
+    
+    
+    return tanimoto_coeff
 
 
 ###############################################################################
@@ -289,14 +296,14 @@ def cluster_by_partitioning(active_sites):
         centers.append(active_sites[centers_indices[i]])
     print centers
     #centers just gives you the indices, not the actual instances
-    #do k-medioids_clusters--this function takes the centers and clusters, calculates new clusters
-    # k_medioids_centers takes new clusterings and calculates new centers
-    clusters= k_medioids_clusters(active_sites, clusters, centers)
+    #do k-means_clusters--this function takes the centers and clusters, calculates new clusters
+    # k_means_centers takes new clusterings and calculates new centers
+    clusters= k_means_clusters(active_sites, clusters, centers)
     epsilon = obj_function( clusters, centers)
     while epsilon>100:
-        clusters= k_medioids_clusters(active_sites, clusters, centers)
+        clusters= k_means_clusters(active_sites, clusters, centers)
         current_obj_func = obj_function(clusters, centers)
-        centers = k_medioids_centers(clusters, centers)
+        centers = k_means_centers(clusters, centers)
         epsilon = current_obj_func-obj_function(clusters, centers)
     
     return clusters
@@ -315,9 +322,9 @@ def obj_function(clusters, centers):
     return obj_func
 ###############################################################################
 #calculates new clusterings from a set of centers                             #
-#calculates new centers/medioids from a new set of clusters                   #
+#calculates new centers/means from a new set of clusters                   #
 #                                                                             #
-def k_medioids_clusters(active_sites, clusters, centers):
+def k_means_clusters(active_sites, clusters, centers):
     distance_matrix = np.zeros([len(active_sites), len(centers)])
     new_clusters = [[] for i in range(len(centers))]
     for i in range(len(active_sites)):
@@ -328,7 +335,7 @@ def k_medioids_clusters(active_sites, clusters, centers):
         new_clusters[max_indices[k]].append(active_sites[k])
     return new_clusters
 
-def k_medioids_centers(clusters, centers):
+def k_means_centers(clusters, centers):
     sum_coords = np.zeros([len(clusters),3])
     for i in range(len(centers)):
         
