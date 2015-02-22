@@ -109,7 +109,7 @@ class ActiveSite:
         self.stdev_res_dist = 0 #st deviation of residue distance from site center
         self.farthest_res = 0 #distance of residue farthest from center
         self.nearest_res = 0 #distance of residue closest to center
-        self.unique_res = [] #list of unique residues making up the active site
+        self.unique_res = set() #list of unique residues making up the active site
         
 
     # Overload the __repr__ operator to make printing simpler.
@@ -244,18 +244,17 @@ def compute_Carbon_dist(res1, res2):
     return dist
 ###############################################################################
 # calculates the distance between every residue and the site center           #
+# finds shortest and longest distance from center to residue                  #
 # since we're looping through anyway, count unique residues                   #
 def residue_dist_center(active_sites):
     
     for i in range(len(active_sites)):
         residues = active_sites[i].residues
-        unique_residues = []
+        unique_residues = set()
         distance_vector = np.zeros([len(residues), 1])
         for j in range(len(residues)):
             if residues[j].type not in unique_residues:
-                unique_residues.append(residues[j].type)
-            else:
-                continue
+                unique_residues.add(residues[j].type)
                 
             #choose this way of calculating distance if want to use avg coords
             # of all the atoms in the residue
@@ -265,25 +264,29 @@ def residue_dist_center(active_sites):
             #carbon as the representative atom of the residue
             distance_vector[j] = distance.euclidean(active_sites[i].center, residues[j].atoms[2].coords)
         active_sites[i].unique_res = unique_residues
-        print active_sites[i].unique_res
         active_sites[i].avg_res_dist = np.sum(distance_vector)/len(residues)
         active_sites[i].stdev_res_dist = np.std(distance_vector)
+        active_sites[i].farthest_res = np.amax(distance_vector)
+        active_sites[i].nearest_res = np.amin(distance_vector)
     return active_sites
 
 ###################################################################################
 #
 #calculate the tanimoto coefficient based on comparison of AAs in two active sites#
 #                                                                                 #
-def tanimoto(site_A, site_B):
-    
-    tanimoto_coeff=0
-    
-    
-    
-    
+def tanimoto(setA, setB):
+    unionAB = list(setA | setB)
+    intersectAB = setA.intersection(setB)
+    tanimoto_coeff=len(intersectAB)/float(len(unionAB))    
     return tanimoto_coeff
 
-
+def tanimoto_sites(active_sites):
+    tanimoto_dict = {}
+    for i in range(len(active_sites)):
+        for j in range(1,len(active_sites)):
+            tanimoto_dict[(active_sites[i].name, active_sites[j].name)] = tanimoto(active_sites[i].unique_res,active_sites[j].unique_res )
+            
+    return tanimoto_dict
 ###############################################################################
 #                                                                             #
 # Compute the similarity between two given ActiveSite instances.              #
@@ -319,10 +322,11 @@ def compute_similarity(site_A, site_B):
 def cluster_by_partitioning(active_sites):
     k = len(active_sites)/2-1
 
-# Part of the distance metric will be the multimer-state of the enzyme site
-#so first calculate that and save it as a feature 
+    # Part of the distance metric will be the multimer-state of the enzyme site
+    #so first calculate that and save it as a feature 
     [clusters, active_sites] = nmers(active_sites)
-    print active_sites
+    #get the tanimoto dictionary for comparisons of all active sites to all other active sites
+    tanimoto_dict = tanimoto_sites(active_sites)
     # randomly pick k centers
     centers_indices = random.sample(xrange(0, len(active_sites)), k)
     centers = []
