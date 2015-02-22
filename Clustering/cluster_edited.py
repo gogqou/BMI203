@@ -108,7 +108,7 @@ class ActiveSite:
         self.stdev_res_dist = 0 #st deviation of residue distance from site center
         self.farthest_res = 0 #distance of residue farthest from center
         self.nearest_res = 0 #distance of residue closest to center
-        
+        self.unique_res = [] #list of unique residues making up the active site
         
 
     # Overload the __repr__ operator to make printing simpler.
@@ -174,8 +174,14 @@ def read_active_sites(dir):
         
     
     print "Read in %d active sites" % len(active_sites)
-    
+    residue_dist_center(active_sites)
+    print 'Calculated center and residue distances'
     return active_sites
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
 #####################################################################################
 #check if there are residue num repeats--tells us it's a multimer                   #
 #this can start as a first pass at segregating active sites                         #
@@ -236,7 +242,15 @@ def compute_Carbon_dist(res1, res2):
     dist = distance.euclidean(res1C.coords, res2C.coords)
     return dist
 ###############################################################################
-
+def residue_dist_center(active_sites):
+    for i in range(len(active_sites)):
+        residues = active_sites[i].residues
+        distance_vector = np.zeros([len(residues), 1])
+        for j in range(len(residues)):
+            distance_vector[j] = distance.euclidean(active_sites[i].center, residues[j].avg_coords)
+        active_sites[i].avg_res_dist = np.sum(distance_vector)/len(residues)
+        active_sites[i].stdev_res_dist = np.std(distance_vector)
+    return active_sites
 
 ###################################################################################
 #
@@ -269,6 +283,8 @@ def compute_similarity(site_A, site_B):
 
     return similarity
 
+#                                                                             #
+#                                                                             #
 ###############################################################################
 
 
@@ -307,10 +323,13 @@ def cluster_by_partitioning(active_sites):
         epsilon = current_obj_func-obj_function(clusters, centers)
     
     return clusters
-
+#                                                                             #
+#                                                                             #
 ###############################################################################
 
 ###############################################################################
+#                                                                             #
+#                                                                             #
 def obj_function(clusters, centers):
     distance_matrix = np.zeros([len(centers), len(centers)])
     for i in range(len(centers)):
@@ -320,9 +339,13 @@ def obj_function(clusters, centers):
     obj_func = np.sum(distance_matrix)
     print obj_func
     return obj_func
+#                                                                             #
+###############################################################################
+
+
 ###############################################################################
 #calculates new clusterings from a set of centers                             #
-#calculates new centers/means from a new set of clusters                   #
+#calculates new centers/means from a new set of clusters                      #
 #                                                                             #
 def k_means_clusters(active_sites, clusters, centers):
     distance_matrix = np.zeros([len(active_sites), len(centers)])
@@ -336,6 +359,10 @@ def k_means_clusters(active_sites, clusters, centers):
     return new_clusters
 
 def k_means_centers(clusters, centers):
+    
+    
+    # WORK IN PROGRESS NEED TO CHANGE CALCULATIONS AFTER PUTTING IN ALL 
+    #THE PARTS OF THE SIMILARITY METRIC
     sum_coords = np.zeros([len(clusters),3])
     for i in range(len(centers)):
         
@@ -346,6 +373,12 @@ def k_means_centers(clusters, centers):
     new_centers = []
     
     return new_centers
+
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
 
 
 ###############################################################################
@@ -392,7 +425,7 @@ def cluster_hierarchically(active_sites):
     
     return clusterings[:L]
 
-########################################################################################################
+###############################################################################
 
 def complete_linkage(current_distance_matrix, clusters):
     
@@ -415,6 +448,8 @@ def complete_linkage(current_distance_matrix, clusters):
     del clusters[y]
     epsilon= np.min(new_distance_matrix[np.nonzero(new_distance_matrix)])
     return new_distance_matrix, clusters, epsilon
+#                                                                             #
+#                                                                             #
 ###############################################################################
 
 
@@ -470,7 +505,10 @@ def write_mult_clusterings(filename, clusterings):
 
 
 
-
+###############################################################################
+#                                                                             #
+#                                                                             #
+#                                                                             #
 def main():
     np.set_printoptions(threshold=1000, linewidth=1000, precision = 5, suppress = False)
     
@@ -479,7 +517,7 @@ def main():
         print "Usage: cluster.py [-P| -H] <pdb directory> <output file>"
         sys.exit(0)
     
-    ###############################################################################
+###############################################################################
 #                                                                             #
 # Top Level                                                                   #
 
