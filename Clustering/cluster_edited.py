@@ -287,8 +287,10 @@ def tanimoto_sites(active_sites):
             tanimoto_coeff = tanimoto(active_sites[i].unique_res,active_sites[j].unique_res)
             if tanimoto_coeff>0:
                 tanimoto_dict[(active_sites[i].name, active_sites[j].name)] =1-log(tanimoto_coeff, 2)
+                tanimoto_dict[(active_sites[j].name, active_sites[i].name)] =1-log(tanimoto_coeff, 2)
             else:
                 tanimoto_dict[(active_sites[i].name, active_sites[j].name)] =1
+                tanimoto_dict[(active_sites[j].name, active_sites[i].name)] =1
     return tanimoto_dict
 ###############################################################################
 #                                                                             #
@@ -301,9 +303,7 @@ def tanimoto_sites(active_sites):
 def compute_similarity(site_A, site_B, tanimoto_dict):
     metricA = np.array([site_A.center[0], site_A.center[1],site_A.center[2],site_A.farthest_res, site_A.nearest_res, site_A.stdev_res_dist, site_A.nmer])
     metricB = np.array([site_B.center[0], site_B.center[1],site_B.center[2], site_B.farthest_res, site_B.nearest_res, site_B.stdev_res_dist, site_B.nmer])
-    similarity = distance.euclidean(metricA, metricB)
-    print distance.euclidean(metricA, metricB)
-    print similarity
+    similarity = (1+tanimoto_dict[(site_A.name, site_B.name)])*distance.euclidean(metricA, metricB)
     return similarity
 
 #                                                                             #
@@ -418,7 +418,11 @@ def k_means_centers(clusters, centers):
 
 def cluster_hierarchically(active_sites):
 
-
+    # Part of the distance metric will be the multimer-state of the enzyme site
+    #so first calculate that and save it as a feature 
+    [clusters, active_sites] = nmers(active_sites)
+    #get the tanimoto dictionary for comparisons of all active sites to all other active sites
+    tanimoto_dict = tanimoto_sites(active_sites)
     #populate distance matrix
     
     clusters = [[] for i in range(len(active_sites))]
@@ -433,17 +437,17 @@ def cluster_hierarchically(active_sites):
                 distance_matrix[i,j] = 0
             else:
                 
-                distance_matrix[i,j] = compute_similarity(active_sites[i], active_sites[j])
+                distance_matrix[i,j] = compute_similarity(active_sites[i], active_sites[j], tanimoto_dict)
                 #dist_matrix_dict[(active_sites[i], active_sites[j])]= distance_matrix[i,j]
                 #dist_matrix_dict[(active_sites[j], active_sites[i])]= distance_matrix[i,j]
-                distance_matrix[j,i] = compute_similarity(active_sites[i], active_sites[j])
+                distance_matrix[j,i] = compute_similarity(active_sites[i], active_sites[j], tanimoto_dict)
     clusterings = [[] for k in range(len(clusters))]
     clusterings[0].append(list(clusters))
     L = 1
     epsilon = 10
     current_distance_matrix = distance_matrix.copy()
     #epsilon is the threshold / cutoff maximum distance between two clusters where we stop agglomerating....
-    while epsilon < 500:
+    while epsilon < 200:
         [current_distance_matrix, clusters, epsilon] = complete_linkage (current_distance_matrix, clusters)
         clusterings[L].append(list(clusters))
         print 'combining clusters,', L, 'iterations'
