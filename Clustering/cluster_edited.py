@@ -49,6 +49,7 @@ import glob
 import random
 import numpy as np
 import math
+from boto.ec2.cloudwatch.alarm import MetricAlarm
 
 ###############################################################################
 #                                                                             #
@@ -110,7 +111,7 @@ class ActiveSite:
         self.farthest_res = 0 #distance of residue farthest from center
         self.nearest_res = 0 #distance of residue closest to center
         self.unique_res = set() #list of unique residues making up the active site
-        
+        self.metric =0
 
     # Overload the __repr__ operator to make printing simpler.
     def __repr__(self):
@@ -292,6 +293,17 @@ def tanimoto_sites(active_sites):
                 tanimoto_dict[(active_sites[i].name, active_sites[j].name)] =1
                 tanimoto_dict[(active_sites[j].name, active_sites[i].name)] =1
     return tanimoto_dict
+
+###############################################################################
+###############################################################################
+#                                                                             #
+def similarity_metric(active_sites):
+    for i in range(len(active_sites)):
+        active_sites[i].metric = np.array([active_sites[i].center[0], active_sites[i].center[1],active_sites[i].center[2], active_sites[i].farthest_res, active_sites[i].nearest_res, active_sites[i].stdev_res_dist, active_sites[i].nmer])    
+    return active_sites
+
+
+
 ###############################################################################
 #                                                                             #
 # Compute the similarity between two given ActiveSite instances.              #
@@ -301,9 +313,7 @@ def tanimoto_sites(active_sites):
 #                                                                             #
 
 def compute_similarity(site_A, site_B, tanimoto_dict):
-    metricA = np.array([site_A.center[0], site_A.center[1],site_A.center[2],site_A.farthest_res, site_A.nearest_res, site_A.stdev_res_dist, site_A.nmer])
-    metricB = np.array([site_B.center[0], site_B.center[1],site_B.center[2], site_B.farthest_res, site_B.nearest_res, site_B.stdev_res_dist, site_B.nmer])
-    similarity = (1+tanimoto_dict[(site_A.name, site_B.name)])*distance.euclidean(metricA, metricB)
+    similarity = (1+tanimoto_dict[(site_A.name, site_B.name)])*distance.euclidean(site_A.metric, site_B.metric)
     return similarity
 
 #                                                                             #
@@ -329,6 +339,7 @@ def cluster_by_partitioning(active_sites):
     [clusters, active_sites] = nmers(active_sites)
     #get the tanimoto dictionary for comparisons of all active sites to all other active sites
     tanimoto_dict = tanimoto_sites(active_sites)
+    active_sites = similarity_metric(active_sites)
     # randomly pick k centers
     centers_indices = random.sample(xrange(0, len(active_sites)), k)
     centers = []
@@ -423,6 +434,8 @@ def cluster_hierarchically(active_sites):
     [clusters, active_sites] = nmers(active_sites)
     #get the tanimoto dictionary for comparisons of all active sites to all other active sites
     tanimoto_dict = tanimoto_sites(active_sites)
+    #calc the similarity metric for all the active sites
+    active_sites = similarity_metric(active_sites)
     #populate distance matrix
     
     clusters = [[] for i in range(len(active_sites))]
