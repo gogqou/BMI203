@@ -125,7 +125,8 @@ class ActiveSite:
 #                                                                             #
 # Read in all of the active sites from the given directory.                   #
 #                                                                             #
-# Input: directory                                                            #
+# Input: directory   
+# Processing: finding average coordinates for each residue and active site    #
 # Output: list of ActiveSite instances                                        #
 
 def read_active_sites(dir):
@@ -296,13 +297,15 @@ def tanimoto_sites(active_sites):
 
 ###############################################################################
 ###############################################################################
+# Iterates through and compiles the similarity metric values                  #
+#                                                                             #
 #                                                                             #
 def similarity_metric(active_sites):
     for i in range(len(active_sites)):
-        active_sites[i].metric = np.array([active_sites[i].center[0], active_sites[i].center[1],active_sites[i].center[2], active_sites[i].farthest_res, active_sites[i].nearest_res, active_sites[i].stdev_res_dist, active_sites[i].nmer])    
+        active_sites[i].metric = np.array([active_sites[i].avg_res_dist,active_sites[i].stdev_res_dist, active_sites[i].farthest_res, active_sites[i].nearest_res, active_sites[i].nmer])    
     return active_sites
 
-
+###############################################################################
 
 ###############################################################################
 #                                                                             #
@@ -457,11 +460,10 @@ def cluster_hierarchically(active_sites):
     clusterings = [[] for k in range(len(clusters))]
     clusterings[0].append(list(clusters))
     L = 1
-    epsilon = 10
     current_distance_matrix = distance_matrix.copy()
     #epsilon is the threshold / cutoff maximum distance between two clusters where we stop agglomerating....
-    while epsilon < 200:
-        [current_distance_matrix, clusters, epsilon] = complete_linkage (current_distance_matrix, clusters)
+    while len(clusters)>1:
+        [current_distance_matrix, clusters] = complete_linkage (current_distance_matrix, clusters)
         clusterings[L].append(list(clusters))
         print 'combining clusters,', L, 'iterations'
         L = L+1
@@ -489,8 +491,7 @@ def complete_linkage(current_distance_matrix, clusters):
     new_distance_matrix[x,x] = 0
     clusters[x]= clusters[x]+clusters[y][0:]
     del clusters[y]
-    epsilon= np.min(new_distance_matrix[np.nonzero(new_distance_matrix)])
-    return new_distance_matrix, clusters, epsilon
+    return new_distance_matrix, clusters
 #                                                                             #
 #                                                                             #
 ###############################################################################
