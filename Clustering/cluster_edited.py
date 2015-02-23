@@ -13,7 +13,7 @@ hierarchical:
 bottom up
 
 partitioning:
-k medioids 
+k mean 
 '''
 #!C:/Python22/python.exe
 
@@ -49,7 +49,9 @@ import glob
 import random
 import numpy as np
 import math
-
+import scipy.cluster.hierarchy as hierarchy
+import matplotlib.pyplot as plt
+import matplotlib
 ###############################################################################
 #                                                                             #
 # A simple class for an atom                                                  #
@@ -102,9 +104,15 @@ class ActiveSite:
         self.residues = []
         self.multimer = False
         self.nmer = 1
-        self.center=[0.0, 0.0, 0.0]
-        self.monomersize = 0
-        
+        self.sum_coords = [0.0, 0.0, 0.0]
+        self.center=[0.0, 0.0, 0.0] #Euclidean center of active site--average pos of residues 
+        self.monomersize = 0 #number of residues consisting monomer repeat
+        self.avg_res_dist = 0 #average residue distance from active site center
+        self.stdev_res_dist = 0 #st deviation of residue distance from site center
+        self.farthest_res = 0 #distance of residue farthest from center
+        self.nearest_res = 0 #distance of residue closest to center
+        self.unique_res = set() #list of unique residues making up the active site
+        self.metric =0
 
     # Overload the __repr__ operator to make printing simpler.
     def __repr__(self):
@@ -118,7 +126,8 @@ class ActiveSite:
 #                                                                             #
 # Read in all of the active sites from the given directory.                   #
 #                                                                             #
-# Input: directory                                                            #
+# Input: directory   
+# Processing: finding average coordinates for each residue and active site    #
 # Output: list of ActiveSite instances                                        #
 
 def read_active_sites(dir):
@@ -159,18 +168,23 @@ def read_active_sites(dir):
           
             else:  # I've reached a TER card
                 active_site.residues.append(residue)
-                active_site.center =  active_site.center + residue.sum_coords 
-            
                 temp_atoms = residue.atoms 
                 residue.avg_coords = residue.sum_coords/len(temp_atoms)
-        temp_residues = active_site.residues
-        active_site.center = active_site.center/len(temp_residues)
+                active_site.sum_coords =np.add(residue.avg_coords, active_site.sum_coords)
+        temp_residues = active_site.residues 
+        active_site.center = active_site.sum_coords/len(temp_residues)   
         active_sites.append(active_site)
         
     
     print "Read in %d active sites" % len(active_sites)
-    
+    residue_dist_center(active_sites)
+    print 'Calculated center and residue distances'
     return active_sites
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
 #####################################################################################
 #check if there are residue num repeats--tells us it's a multimer                   #
 #this can start as a first pass at segregating active sites                         #
@@ -197,6 +211,7 @@ def check_multimer(site):
 def nmers(active_sites):
     
     nmers = [1]
+    labeled_clusters = []
     for j in range(len(active_sites)):
         [check, n, monomer_num]=check_multimer(active_sites[j])
         active_sites[j].monomersize= monomer_num #assigns the monomer size from count performed in check_multimer
@@ -207,7 +222,7 @@ def nmers(active_sites):
                 continue
             else:
                 nmers.append(n)
-
+    
     nmers = sorted(nmers)
     clusters = [[] for i in range(len(nmers))]
     labeled_clusters = zip(nmers, clusters)
@@ -231,19 +246,67 @@ def compute_Carbon_dist(res1, res2):
     dist = distance.euclidean(res1C.coords, res2C.coords)
     return dist
 ###############################################################################
+# calculates the distance between every residue and the site center           #
+# finds shortest and longest distance from center to residue                  #
+# since we're looping through anyway, count unique residues                   #
+def residue_dist_center(active_sites):
+    
+    for i in range(len(active_sites)):
+        residues = active_sites[i].residues
+        unique_residues = set()
+        distance_vector = np.zeros([len(residues), 1])
+        for j in range(len(residues)):
+            if residues[j].type not in unique_residues:
+                unique_residues.add(residues[j].type)
+                
+            #choose this way of calculating distance if want to use avg coords
+            # of all the atoms in the residue
+            #distance_vector[j] = distance.euclidean(active_sites[i].center, residues[j].avg_coords)
+            
+            #choose this way of calculating distance if want to use the central 
+            #carbon as the representative atom of the residue
+            distance_vector[j] = distance.euclidean(active_sites[i].center, residues[j].atoms[2].coords)
+        active_sites[i].unique_res = unique_residues
+        active_sites[i].avg_res_dist = np.sum(distance_vector)/len(residues)
+        active_sites[i].stdev_res_dist = np.std(distance_vector)
+        active_sites[i].farthest_res = np.amax(distance_vector)
+        active_sites[i].nearest_res = np.amin(distance_vector)
+    return active_sites
 
+###################################################################################
+#
+#calculate the tanimoto coefficient based on comparison of AAs in two active sites#
+#                                                                                 #
+def tanimoto(setA, setB):
+    unionAB = list(setA | setB)
+    intersectAB = setA.intersection(setB)
+    tanimoto_coeff=len(intersectAB)/float(len(unionAB))    
+    return tanimoto_coeff
+
+def tanimoto_sites(active_sites):
+    tanimoto_dict = {}
+    for i in range(len(active_sites)):
+        for j in range(len(active_sites)):
+            tanimoto_coeff = tanimoto(active_sites[i].unique_res,active_sites[j].unique_res)
+            if tanimoto_coeff>0:
+                tanimoto_dict[(active_sites[i].name, active_sites[j].name)] =1-log(tanimoto_coeff, 2)
+                tanimoto_dict[(active_sites[j].name, active_sites[i].name)] =1-log(tanimoto_coeff, 2)
+            else:
+                tanimoto_dict[(active_sites[i].name, active_sites[j].name)] =1
+                tanimoto_dict[(active_sites[j].name, active_sites[i].name)] =1
+    return tanimoto_dict
 
 ###############################################################################
-#
-#calculate the major axes within an active site                               #
-# basically figure out the largest distance between major carbons             #
-def compute_major_axes(site):
-    
-    length = 0
-    axes = 0
-    
-    return axes, length
+###############################################################################
+# Iterates through and compiles the similarity metric values                  #
+#                                                                             #
+#                                                                             #
+def similarity_metric(active_sites):
+    for i in range(len(active_sites)):
+        active_sites[i].metric = np.array([active_sites[i].avg_res_dist,active_sites[i].stdev_res_dist, active_sites[i].farthest_res, active_sites[i].nearest_res, active_sites[i].nmer])    
+    return active_sites
 
+###############################################################################
 
 ###############################################################################
 #                                                                             #
@@ -253,17 +316,14 @@ def compute_major_axes(site):
 # Output: the similarity between them (a floating point number)               #
 #                                                                             #
 
-def compute_similarity(site_A, site_B):
-
-    similarity = 0.0
-    
-    similarity = distance.euclidean(site_A.center, site_B.center)
-    #sum of all the distances between primary carbons?
-
+def compute_similarity(site_A, site_B, tanimoto_dict):
+    #similarity = (1+tanimoto_dict[(site_A.name, site_B.name)])*distance.euclidean(site_A.metric, site_B.metric)
+    similarity = distance.euclidean(site_A.metric, site_B.metric)
     return similarity
 
+#                                                                             #
+#                                                                             #
 ###############################################################################
-
 
 
 ########################################################################################################################################
@@ -276,69 +336,109 @@ def compute_similarity(site_A, site_B):
 #         ActiveSite instances)                                               #
 
 def cluster_by_partitioning(active_sites):
-    k = len(active_sites)/2-1
-
-# Part of the distance metric will be the multimer-state of the enzyme site
-#so first calculate that and save it as a feature 
-    [clusters, active_sites] = nmers(active_sites)
-    print active_sites
-    # randomly pick k centers
-    centers_indices = random.sample(xrange(0, len(active_sites)), k)
-    centers = []
-    for i in range(len(centers_indices)):
-        centers.append(active_sites[centers_indices[i]])
-    print centers
-    #centers just gives you the indices, not the actual instances
-    #do k-medioids_clusters--this function takes the centers and clusters, calculates new clusters
-    # k_medioids_centers takes new clusterings and calculates new centers
-    clusters= k_medioids_clusters(active_sites, clusters, centers)
-    epsilon = obj_function( clusters, centers)
-    while epsilon>100:
-        clusters= k_medioids_clusters(active_sites, clusters, centers)
-        current_obj_func = obj_function(clusters, centers)
-        centers = k_medioids_centers(clusters, centers)
-        epsilon = current_obj_func-obj_function(clusters, centers)
     
-    return clusters
 
+    # Part of the distance metric will be the multimer-state of the enzyme site
+    #so first calculate that and save it as a feature 
+    [orig_clusters, active_sites] = nmers(active_sites)
+    #get the tanimoto dictionary for comparisons of all active sites to all other active sites
+    tanimoto_dict = tanimoto_sites(active_sites)
+    active_sites = similarity_metric(active_sites)
+    # randomly pick k centers
+    #iterate through k and keep the lowest objective function clusters
+    best_obj_func = 10000
+    #go through different values for number of clusters to find the one that gives the lowest obj function
+    for k in range(1,len(active_sites)/4, 3):
+        #do a few tries at randomly generating centers
+        for repeat in range(4):
+            centers_indices = random.sample(xrange(0, len(active_sites)), k)
+            centers = []
+            for i in range(len(centers_indices)):
+                centers.append(active_sites[centers_indices[i]])
+            #centers just gives you the indices, not the actual instances
+            #do k-means_clusters--this function takes the centers and clusters, calculates new clusters
+            # k_means_centers takes new clusterings and calculates new centers
+            current_clusters= k_means_clusters(active_sites, orig_clusters, centers, tanimoto_dict)
+            previous_epsilon = obj_function( current_clusters, centers, tanimoto_dict)
+            L = 0
+            delta = previous_epsilon
+            while delta>10 and L<600:
+                current_clusters= k_means_clusters(active_sites, current_clusters, centers, tanimoto_dict)
+                current_obj_func = obj_function(current_clusters, centers,tanimoto_dict)
+                centers = k_means_centers(current_clusters, centers, tanimoto_dict)
+                epsilon = current_obj_func-obj_function(current_clusters, centers,tanimoto_dict)
+                delta = abs(epsilon - previous_epsilon)
+                previous_epsilon = epsilon
+                print 'clustering iteration', L, 'k = ', k
+                L = L+1
+            if current_obj_func <best_obj_func:
+                best_clusters = current_clusters
+                best_obj_func = current_obj_func
+                best_k = k
+            print current_obj_func, k
+    print best_k
+    print best_obj_func
+    return best_clusters
+#                                                                             #
+#                                                                             #
 ###############################################################################
 
 ###############################################################################
-def obj_function(clusters, centers):
-    distance_matrix = np.zeros([len(centers), len(centers)])
+#                                                                             #
+#                                                                             #
+def obj_function(clusters, centers, tanimoto_dict):
+    
+    distance_matrix = np.zeros([len(centers),136])
+    max_length = 0
     for i in range(len(centers)):
         for j in range(len(clusters[i])):
-            distance_matrix[j,i] = math.pow(compute_similarity(clusters[i][j], centers[i]), 2)
-    distance_matrix = distance_matrix[:len(centers)]
+            distance_matrix[i,j] = math.pow(compute_similarity(clusters[i][j], centers[i], tanimoto_dict), 2)
+            if j> max_length:
+                max_length = j
+    distance_matrix = distance_matrix[:,:max_length+1]
     obj_func = np.sum(distance_matrix)
-    print obj_func
     return obj_func
+#                                                                             #
+###############################################################################
+
+
 ###############################################################################
 #calculates new clusterings from a set of centers                             #
-#calculates new centers/medioids from a new set of clusters                   #
+#calculates new centers/means from a new set of clusters                      #
 #                                                                             #
-def k_medioids_clusters(active_sites, clusters, centers):
+def k_means_clusters(active_sites, clusters, centers, tanimoto_dict):
     distance_matrix = np.zeros([len(active_sites), len(centers)])
     new_clusters = [[] for i in range(len(centers))]
     for i in range(len(active_sites)):
         for j in range(len(centers)):
-            distance_matrix[i,j] = compute_similarity(active_sites[i], centers[j])
+            distance_matrix[i,j] = compute_similarity(active_sites[i], centers[j], tanimoto_dict)
     max_indices= np.argmin(distance_matrix, 1)
     for k in range(len(max_indices)):
         new_clusters[max_indices[k]].append(active_sites[k])
     return new_clusters
 
-def k_medioids_centers(clusters, centers):
-    sum_coords = np.zeros([len(clusters),3])
-    for i in range(len(centers)):
-        
-        for j in range(len(clusters[i])):
-            sum_coords[i] = clusters[i][j].center+sum_coords[i]
-        sum_coords[i]=sum_coords[i]/len(clusters[i])
-    print sum_coords
-    new_centers = []
+def k_means_centers(clusters, centers, tanimoto_dict):
     
+    
+    # WORK IN PROGRESS NEED TO CHANGE CALCULATIONS AFTER PUTTING IN ALL 
+    #THE PARTS OF THE SIMILARITY METRIC
+    #find distance from all points within a cluster to each other
+    #or find distance from 
+    new_centers = []
+    for i in range(len(clusters)):
+        distances = np.zeros([len(clusters[i]), 1])
+        for j in range(len(clusters[i])):
+            for k in range(len(clusters[i])):
+                distances[j] = distances[j]+compute_similarity(clusters[i][j], clusters[i][k], tanimoto_dict)
+        min_indices = np.argmin(distances)
+        new_centers.append(clusters[i][min_indices])
     return new_centers
+
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
 
 
 ###############################################################################
@@ -352,7 +452,13 @@ def k_medioids_centers(clusters, centers):
 
 def cluster_hierarchically(active_sites):
 
-
+    # Part of the distance metric will be the multimer-state of the enzyme site
+    #so first calculate that and save it as a feature 
+    [clusters, active_sites] = nmers(active_sites)
+    #get the tanimoto dictionary for comparisons of all active sites to all other active sites
+    tanimoto_dict = tanimoto_sites(active_sites)
+    #calc the similarity metric for all the active sites
+    active_sites = similarity_metric(active_sites)
     #populate distance matrix
     
     clusters = [[] for i in range(len(active_sites))]
@@ -361,31 +467,34 @@ def cluster_hierarchically(active_sites):
     #dist_matrix_dict = {}
     distance_matrix = np.zeros([len(active_sites), len(active_sites)])
     print 'making distance matrix'
+    labels_array = np.zeros([len(active_sites),1])
     for i in range(len(active_sites)):
+        labels_array[i] = active_sites[i].name
         for j in range(i, len(active_sites)):
             if i == j:
                 distance_matrix[i,j] = 0
             else:
-                
-                distance_matrix[i,j] = compute_similarity(active_sites[i], active_sites[j])
-                #dist_matrix_dict[(active_sites[i], active_sites[j])]= distance_matrix[i,j]
-                #dist_matrix_dict[(active_sites[j], active_sites[i])]= distance_matrix[i,j]
-                distance_matrix[j,i] = compute_similarity(active_sites[i], active_sites[j])
+                distance_matrix[i,j] = compute_similarity(active_sites[i], active_sites[j], tanimoto_dict)
+                distance_matrix[j,i] = compute_similarity(active_sites[i], active_sites[j], tanimoto_dict)
     clusterings = [[] for k in range(len(clusters))]
     clusterings[0].append(list(clusters))
     L = 1
-    epsilon = 10
     current_distance_matrix = distance_matrix.copy()
-    #epsilon is the threshold / cutoff maximum distance between two clusters where we stop agglomerating....
-    while epsilon < 500:
-        [current_distance_matrix, clusters, epsilon] = complete_linkage (current_distance_matrix, clusters)
+    #Z=hierarchy.linkage(distance_matrix,  method="complete")
+    
+    #hierarchy.dendrogram(Z, orientation='right', labels = labels_array, leaf_font_size =1) 
+    #plt.show()
+    #print 'drawn dendrogram'
+    
+    while len(clusters)>1:
+        [current_distance_matrix, clusters] = complete_linkage (current_distance_matrix, clusters)
         clusterings[L].append(list(clusters))
         print 'combining clusters,', L, 'iterations'
         L = L+1
     
     return clusterings[:L]
 
-########################################################################################################
+###############################################################################
 
 def complete_linkage(current_distance_matrix, clusters):
     
@@ -406,8 +515,9 @@ def complete_linkage(current_distance_matrix, clusters):
     new_distance_matrix[x,x] = 0
     clusters[x]= clusters[x]+clusters[y][0:]
     del clusters[y]
-    epsilon= np.min(new_distance_matrix[np.nonzero(new_distance_matrix)])
-    return new_distance_matrix, clusters, epsilon
+    return new_distance_matrix, clusters
+#                                                                             #
+#                                                                             #
 ###############################################################################
 
 
@@ -463,7 +573,10 @@ def write_mult_clusterings(filename, clusterings):
 
 
 
-
+###############################################################################
+#                                                                             #
+#                                                                             #
+#                                                                             #
 def main():
     np.set_printoptions(threshold=1000, linewidth=1000, precision = 5, suppress = False)
     
@@ -472,7 +585,7 @@ def main():
         print "Usage: cluster.py [-P| -H] <pdb directory> <output file>"
         sys.exit(0)
     
-    ###############################################################################
+###############################################################################
 #                                                                             #
 # Top Level                                                                   #
 
