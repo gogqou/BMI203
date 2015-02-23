@@ -284,8 +284,11 @@ def tanimoto_sites(active_sites):
     tanimoto_dict = {}
     for i in range(len(active_sites)):
         for j in range(1,len(active_sites)):
-            tanimoto_dict[(active_sites[i].name, active_sites[j].name)] = tanimoto(active_sites[i].unique_res,active_sites[j].unique_res )
-            
+            tanimoto_coeff = tanimoto(active_sites[i].unique_res,active_sites[j].unique_res)
+            if tanimoto_coeff>0:
+                tanimoto_dict[(active_sites[i].name, active_sites[j].name)] =1-log(tanimoto_coeff, 2)
+            else:
+                tanimoto_dict[(active_sites[i].name, active_sites[j].name)] =1
     return tanimoto_dict
 ###############################################################################
 #                                                                             #
@@ -295,13 +298,12 @@ def tanimoto_sites(active_sites):
 # Output: the similarity between them (a floating point number)               #
 #                                                                             #
 
-def compute_similarity(site_A, site_B):
-
-    similarity = 0.0
-    
-    similarity = distance.euclidean(site_A.center, site_B.center)
-    #sum of all the distances between primary carbons?
-
+def compute_similarity(site_A, site_B, tanimoto_dict):
+    metricA = np.array([site_A.center[0], site_A.center[1],site_A.center[2],site_A.farthest_res, site_A.nearest_res, site_A.stdev_res_dist, site_A.nmer])
+    metricB = np.array([site_B.center[0], site_B.center[1],site_B.center[2], site_B.farthest_res, site_B.nearest_res, site_B.stdev_res_dist, site_B.nmer])
+    similarity = distance.euclidean(metricA, metricB)
+    print distance.euclidean(metricA, metricB)
+    print similarity
     return similarity
 
 #                                                                             #
@@ -336,8 +338,8 @@ def cluster_by_partitioning(active_sites):
     #centers just gives you the indices, not the actual instances
     #do k-means_clusters--this function takes the centers and clusters, calculates new clusters
     # k_means_centers takes new clusterings and calculates new centers
-    clusters= k_means_clusters(active_sites, clusters, centers)
-    epsilon = obj_function( clusters, centers)
+    clusters= k_means_clusters(active_sites, clusters, centers, tanimoto_dict)
+    epsilon = obj_function( clusters, centers, tanimoto_dict)
     '''
     while epsilon>100:
         clusters= k_means_clusters(active_sites, clusters, centers)
@@ -354,11 +356,11 @@ def cluster_by_partitioning(active_sites):
 ###############################################################################
 #                                                                             #
 #                                                                             #
-def obj_function(clusters, centers):
+def obj_function(clusters, centers, tanimoto_dict):
     distance_matrix = np.zeros([len(centers), len(centers)])
     for i in range(len(centers)):
         for j in range(len(clusters[i])):
-            distance_matrix[j,i] = math.pow(compute_similarity(clusters[i][j], centers[i]), 2)
+            distance_matrix[j,i] = math.pow(compute_similarity(clusters[i][j], centers[i], tanimoto_dict), 2)
     distance_matrix = distance_matrix[:len(centers)]
     obj_func = np.sum(distance_matrix)
     print obj_func
@@ -371,12 +373,12 @@ def obj_function(clusters, centers):
 #calculates new clusterings from a set of centers                             #
 #calculates new centers/means from a new set of clusters                      #
 #                                                                             #
-def k_means_clusters(active_sites, clusters, centers):
+def k_means_clusters(active_sites, clusters, centers, tanimoto_dict):
     distance_matrix = np.zeros([len(active_sites), len(centers)])
     new_clusters = [[] for i in range(len(centers))]
     for i in range(len(active_sites)):
         for j in range(len(centers)):
-            distance_matrix[i,j] = compute_similarity(active_sites[i], centers[j])
+            distance_matrix[i,j] = compute_similarity(active_sites[i], centers[j], tanimoto_dict)
     max_indices= np.argmin(distance_matrix, 1)
     for k in range(len(max_indices)):
         new_clusters[max_indices[k]].append(active_sites[k])
