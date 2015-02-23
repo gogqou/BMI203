@@ -347,33 +347,35 @@ def cluster_by_partitioning(active_sites):
     # randomly pick k centers
     #iterate through k and keep the lowest objective function clusters
     best_obj_func = 10000
-    for k in range(5,len(active_sites)/2, 2):
-        
-        centers_indices = random.sample(xrange(0, len(active_sites)), k)
-        centers = []
-        for i in range(len(centers_indices)):
-            centers.append(active_sites[centers_indices[i]])
-        #centers just gives you the indices, not the actual instances
-        #do k-means_clusters--this function takes the centers and clusters, calculates new clusters
-        # k_means_centers takes new clusterings and calculates new centers
-        current_clusters= k_means_clusters(active_sites, orig_clusters, centers, tanimoto_dict)
-        previous_epsilon = obj_function( current_clusters, centers, tanimoto_dict)
-        L = 0
-        delta = previous_epsilon
-        while delta>10 and L<600:
-            current_clusters= k_means_clusters(active_sites, current_clusters, centers, tanimoto_dict)
-            current_obj_func = obj_function(current_clusters, centers,tanimoto_dict)
-            centers = k_means_centers(current_clusters, centers, tanimoto_dict)
-            epsilon = current_obj_func-obj_function(current_clusters, centers,tanimoto_dict)
-            delta = abs(epsilon - previous_epsilon)
-            previous_epsilon = epsilon
-            print 'clustering iteration', L, 'k = ', k
-            L = L+1
-        if current_obj_func <best_obj_func:
-            best_clusters = current_clusters
-            best_obj_func = current_obj_func
-            best_k = k
-        print current_obj_func, k
+    #go through different values for number of clusters to find the one that gives the lowest obj function
+    for k in range(1,len(active_sites)/4, 3):
+        #do a few tries at randomly generating centers
+        for repeat in range(4):
+            centers_indices = random.sample(xrange(0, len(active_sites)), k)
+            centers = []
+            for i in range(len(centers_indices)):
+                centers.append(active_sites[centers_indices[i]])
+            #centers just gives you the indices, not the actual instances
+            #do k-means_clusters--this function takes the centers and clusters, calculates new clusters
+            # k_means_centers takes new clusterings and calculates new centers
+            current_clusters= k_means_clusters(active_sites, orig_clusters, centers, tanimoto_dict)
+            previous_epsilon = obj_function( current_clusters, centers, tanimoto_dict)
+            L = 0
+            delta = previous_epsilon
+            while delta>10 and L<600:
+                current_clusters= k_means_clusters(active_sites, current_clusters, centers, tanimoto_dict)
+                current_obj_func = obj_function(current_clusters, centers,tanimoto_dict)
+                centers = k_means_centers(current_clusters, centers, tanimoto_dict)
+                epsilon = current_obj_func-obj_function(current_clusters, centers,tanimoto_dict)
+                delta = abs(epsilon - previous_epsilon)
+                previous_epsilon = epsilon
+                print 'clustering iteration', L, 'k = ', k
+                L = L+1
+            if current_obj_func <best_obj_func:
+                best_clusters = current_clusters
+                best_obj_func = current_obj_func
+                best_k = k
+            print current_obj_func, k
     print best_k
     print best_obj_func
     return best_clusters
