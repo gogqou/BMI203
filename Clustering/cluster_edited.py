@@ -250,7 +250,9 @@ def compute_Carbon_dist(res1, res2):
 # finds shortest and longest distance from center to residue                  #
 # since we're looping through anyway, count unique residues                   #
 def residue_dist_center(active_sites):
-    
+    max_avg_dist = 0
+    max_farthest_res = 0
+    max_nearest_res = 0
     for i in range(len(active_sites)):
         residues = active_sites[i].residues
         unique_residues = set()
@@ -271,6 +273,17 @@ def residue_dist_center(active_sites):
         active_sites[i].stdev_res_dist = np.std(distance_vector)
         active_sites[i].farthest_res = np.amax(distance_vector)
         active_sites[i].nearest_res = np.amin(distance_vector)
+        if active_sites[i].avg_res_dist>max_avg_dist:
+            max_avg_dist = active_sites[i].avg_res_dist
+        if active_sites[i].farthest_res>max_farthest_res:
+            max_farthest_res=active_sites[i].farthest_res
+        if active_sites[i].nearest_res> max_nearest_res:
+            max_nearest_res=active_sites[i].nearest_res
+    for i in range(len(active_sites)):
+        active_sites[i].avg_res_dist = active_sites[i].avg_res_dist/max_avg_dist
+        active_sites[i].stdev_res_dist = active_sites[i].stdev_res_dist/max_avg_dist
+        active_sites[i].farthest_res = active_sites[i].farthest_res/max_farthest_res
+        active_sites[i].nearest_res = active_sites[i].nearest_res/max_nearest_res
     return active_sites
 
 ###################################################################################
@@ -317,8 +330,8 @@ def similarity_metric(active_sites):
 #                                                                             #
 
 def compute_similarity(site_A, site_B, tanimoto_dict):
-    #similarity = (1+tanimoto_dict[(site_A.name, site_B.name)])*distance.euclidean(site_A.metric, site_B.metric)
-    similarity = distance.euclidean(site_A.metric, site_B.metric)
+    similarity = (1+tanimoto_dict[(site_A.name, site_B.name)])*distance.euclidean(site_A.metric, site_B.metric)
+    #similarity = distance.euclidean(site_A.metric, site_B.metric)
     return similarity
 
 #                                                                             #
@@ -480,12 +493,11 @@ def cluster_hierarchically(active_sites):
     clusterings[0].append(list(clusters))
     L = 1
     current_distance_matrix = distance_matrix.copy()
-    #Z=hierarchy.linkage(distance_matrix,  method="complete")
+    Z=hierarchy.linkage(distance_matrix,  method="complete")
     
-    #hierarchy.dendrogram(Z, orientation='right', labels = labels_array, leaf_font_size =1) 
-    #plt.show()
-    #print 'drawn dendrogram'
-    
+    hierarchy.dendrogram(Z, orientation='right', labels = labels_array, leaf_font_size =1) 
+    plt.show()
+    print 'drawn dendrogram'
     while len(clusters)>1:
         [current_distance_matrix, clusters] = complete_linkage (current_distance_matrix, clusters)
         clusterings[L].append(list(clusters))
