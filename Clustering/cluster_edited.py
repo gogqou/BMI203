@@ -317,13 +317,13 @@ def similarity_metric(active_sites):
 #                                                                             #
 
 def compute_similarity(site_A, site_B, tanimoto_dict):
-    similarity = (1+tanimoto_dict[(site_A.name, site_B.name)])*distance.euclidean(site_A.metric, site_B.metric)
+    #similarity = (1+tanimoto_dict[(site_A.name, site_B.name)])*distance.euclidean(site_A.metric, site_B.metric)
+    similarity = distance.euclidean(site_A.metric, site_B.metric)
     return similarity
 
 #                                                                             #
 #                                                                             #
 ###############################################################################
-
 
 
 ########################################################################################################################################
@@ -336,34 +336,47 @@ def compute_similarity(site_A, site_B, tanimoto_dict):
 #         ActiveSite instances)                                               #
 
 def cluster_by_partitioning(active_sites):
-    k = len(active_sites)/9-1
+    
 
     # Part of the distance metric will be the multimer-state of the enzyme site
     #so first calculate that and save it as a feature 
-    [clusters, active_sites] = nmers(active_sites)
+    [orig_clusters, active_sites] = nmers(active_sites)
     #get the tanimoto dictionary for comparisons of all active sites to all other active sites
     tanimoto_dict = tanimoto_sites(active_sites)
     active_sites = similarity_metric(active_sites)
     # randomly pick k centers
-    centers_indices = random.sample(xrange(0, len(active_sites)), k)
-    centers = []
-    for i in range(len(centers_indices)):
-        centers.append(active_sites[centers_indices[i]])
-    #centers just gives you the indices, not the actual instances
-    #do k-means_clusters--this function takes the centers and clusters, calculates new clusters
-    # k_means_centers takes new clusterings and calculates new centers
-    clusters= k_means_clusters(active_sites, clusters, centers, tanimoto_dict)
-    epsilon = obj_function( clusters, centers, tanimoto_dict)
-    print epsilon
-    L = 0
-    while epsilon>10:
-        clusters= clusters= k_means_clusters(active_sites, clusters, centers, tanimoto_dict)
-        current_obj_func = obj_function(clusters, centers,tanimoto_dict)
-        centers = k_means_centers(clusters, centers, tanimoto_dict)
-        epsilon = current_obj_func-obj_function(clusters, centers,tanimoto_dict)
-        print 'clustering iteration', L
-        L = L+1
-    return clusters
+    #iterate through k and keep the lowest objective function clusters
+    best_obj_func = 10000
+    for k in range(5,len(active_sites)/2, 2):
+        
+        centers_indices = random.sample(xrange(0, len(active_sites)), k)
+        centers = []
+        for i in range(len(centers_indices)):
+            centers.append(active_sites[centers_indices[i]])
+        #centers just gives you the indices, not the actual instances
+        #do k-means_clusters--this function takes the centers and clusters, calculates new clusters
+        # k_means_centers takes new clusterings and calculates new centers
+        current_clusters= k_means_clusters(active_sites, orig_clusters, centers, tanimoto_dict)
+        previous_epsilon = obj_function( current_clusters, centers, tanimoto_dict)
+        L = 0
+        delta = previous_epsilon
+        while delta>10 and L<600:
+            current_clusters= k_means_clusters(active_sites, current_clusters, centers, tanimoto_dict)
+            current_obj_func = obj_function(current_clusters, centers,tanimoto_dict)
+            centers = k_means_centers(current_clusters, centers, tanimoto_dict)
+            epsilon = current_obj_func-obj_function(current_clusters, centers,tanimoto_dict)
+            delta = abs(epsilon - previous_epsilon)
+            previous_epsilon = epsilon
+            print 'clustering iteration', L, 'k = ', k
+            L = L+1
+        if current_obj_func <best_obj_func:
+            best_clusters = current_clusters
+            best_obj_func = current_obj_func
+            best_k = k
+        print current_obj_func, k
+    print best_k
+    print best_obj_func
+    return best_clusters
 #                                                                             #
 #                                                                             #
 ###############################################################################
