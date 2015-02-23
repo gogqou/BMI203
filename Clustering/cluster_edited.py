@@ -49,8 +49,9 @@ import glob
 import random
 import numpy as np
 import math
-from boto.ec2.cloudwatch.alarm import MetricAlarm
-
+import scipy.cluster.hierarchy as hierarchy
+import matplotlib.pyplot as plt
+import matplotlib
 ###############################################################################
 #                                                                             #
 # A simple class for an atom                                                  #
@@ -221,7 +222,7 @@ def nmers(active_sites):
                 continue
             else:
                 nmers.append(n)
-    '''
+    
     nmers = sorted(nmers)
     clusters = [[] for i in range(len(nmers))]
     labeled_clusters = zip(nmers, clusters)
@@ -231,7 +232,7 @@ def nmers(active_sites):
                 clusters[m].append(active_sites[j])    
     for k in range(len(clusters)):
         print labeled_clusters[k]
-    '''
+    
     return labeled_clusters, active_sites
 
 
@@ -285,7 +286,7 @@ def tanimoto(setA, setB):
 def tanimoto_sites(active_sites):
     tanimoto_dict = {}
     for i in range(len(active_sites)):
-        for j in range(1,len(active_sites)):
+        for j in range(len(active_sites)):
             tanimoto_coeff = tanimoto(active_sites[i].unique_res,active_sites[j].unique_res)
             if tanimoto_coeff>0:
                 tanimoto_dict[(active_sites[i].name, active_sites[j].name)] =1-log(tanimoto_coeff, 2)
@@ -335,7 +336,7 @@ def compute_similarity(site_A, site_B, tanimoto_dict):
 #         ActiveSite instances)                                               #
 
 def cluster_by_partitioning(active_sites):
-    k = len(active_sites)/2-1
+    k = len(active_sites)/9-1
 
     # Part of the distance metric will be the multimer-state of the enzyme site
     #so first calculate that and save it as a feature 
@@ -348,20 +349,20 @@ def cluster_by_partitioning(active_sites):
     centers = []
     for i in range(len(centers_indices)):
         centers.append(active_sites[centers_indices[i]])
-    print centers
     #centers just gives you the indices, not the actual instances
     #do k-means_clusters--this function takes the centers and clusters, calculates new clusters
     # k_means_centers takes new clusterings and calculates new centers
     clusters= k_means_clusters(active_sites, clusters, centers, tanimoto_dict)
     epsilon = obj_function( clusters, centers, tanimoto_dict)
-    '''
-    while epsilon>100:
-        clusters= k_means_clusters(active_sites, clusters, centers)
-        current_obj_func = obj_function(clusters, centers)
-        centers = k_means_centers(clusters, centers)
-        epsilon = current_obj_func-obj_function(clusters, centers)
-    '''
-    
+    print epsilon
+    L = 0
+    while epsilon>10:
+        clusters= clusters= k_means_clusters(active_sites, clusters, centers, tanimoto_dict)
+        current_obj_func = obj_function(clusters, centers,tanimoto_dict)
+        centers = k_means_centers(clusters, centers, tanimoto_dict)
+        epsilon = current_obj_func-obj_function(clusters, centers,tanimoto_dict)
+        print 'clustering iteration', L
+        L = L+1
     return clusters
 #                                                                             #
 #                                                                             #
@@ -371,13 +372,16 @@ def cluster_by_partitioning(active_sites):
 #                                                                             #
 #                                                                             #
 def obj_function(clusters, centers, tanimoto_dict):
-    distance_matrix = np.zeros([len(centers), len(centers)])
+    
+    distance_matrix = np.zeros([len(centers),136])
+    max_length = 0
     for i in range(len(centers)):
         for j in range(len(clusters[i])):
-            distance_matrix[j,i] = math.pow(compute_similarity(clusters[i][j], centers[i], tanimoto_dict), 2)
-    distance_matrix = distance_matrix[:len(centers)]
+            distance_matrix[i,j] = math.pow(compute_similarity(clusters[i][j], centers[i], tanimoto_dict), 2)
+            if j> max_length:
+                max_length = j
+    distance_matrix = distance_matrix[:,:max_length+1]
     obj_func = np.sum(distance_matrix)
-    print obj_func
     return obj_func
 #                                                                             #
 ###############################################################################
@@ -398,20 +402,21 @@ def k_means_clusters(active_sites, clusters, centers, tanimoto_dict):
         new_clusters[max_indices[k]].append(active_sites[k])
     return new_clusters
 
-def k_means_centers(clusters, centers):
+def k_means_centers(clusters, centers, tanimoto_dict):
     
     
     # WORK IN PROGRESS NEED TO CHANGE CALCULATIONS AFTER PUTTING IN ALL 
     #THE PARTS OF THE SIMILARITY METRIC
-    sum_coords = np.zeros([len(clusters),3])
-    for i in range(len(centers)):
-        
-        for j in range(len(clusters[i])):
-            sum_coords[i] = clusters[i][j].center+sum_coords[i]
-        sum_coords[i]=sum_coords[i]/len(clusters[i])
-    print sum_coords
+    #find distance from all points within a cluster to each other
+    #or find distance from 
     new_centers = []
-    
+    for i in range(len(clusters)):
+        distances = np.zeros([len(clusters[i]), 1])
+        for j in range(len(clusters[i])):
+            for k in range(len(clusters[i])):
+                distances[j] = distances[j]+compute_similarity(clusters[i][j], clusters[i][k], tanimoto_dict)
+        min_indices = np.argmin(distances)
+        new_centers.append(clusters[i][min_indices])
     return new_centers
 
 #                                                                             #
@@ -447,21 +452,25 @@ def cluster_hierarchically(active_sites):
     #dist_matrix_dict = {}
     distance_matrix = np.zeros([len(active_sites), len(active_sites)])
     print 'making distance matrix'
+    labels_array = np.zeros([len(active_sites),1])
     for i in range(len(active_sites)):
+        labels_array[i] = active_sites[i].name
         for j in range(i, len(active_sites)):
             if i == j:
                 distance_matrix[i,j] = 0
             else:
-                
                 distance_matrix[i,j] = compute_similarity(active_sites[i], active_sites[j], tanimoto_dict)
-                #dist_matrix_dict[(active_sites[i], active_sites[j])]= distance_matrix[i,j]
-                #dist_matrix_dict[(active_sites[j], active_sites[i])]= distance_matrix[i,j]
                 distance_matrix[j,i] = compute_similarity(active_sites[i], active_sites[j], tanimoto_dict)
     clusterings = [[] for k in range(len(clusters))]
     clusterings[0].append(list(clusters))
     L = 1
     current_distance_matrix = distance_matrix.copy()
-    #epsilon is the threshold / cutoff maximum distance between two clusters where we stop agglomerating....
+    #Z=hierarchy.linkage(distance_matrix,  method="complete")
+    
+    #hierarchy.dendrogram(Z, orientation='right', labels = labels_array, leaf_font_size =1) 
+    #plt.show()
+    #print 'drawn dendrogram'
+    
     while len(clusters)>1:
         [current_distance_matrix, clusters] = complete_linkage (current_distance_matrix, clusters)
         clusterings[L].append(list(clusters))
