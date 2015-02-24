@@ -330,7 +330,7 @@ def similarity_metric(active_sites):
 #                                                                             #
 
 def compute_similarity(site_A, site_B, tanimoto_dict):
-    similarity = (1+tanimoto_dict[(site_A.name, site_B.name)])*distance.euclidean(site_A.metric, site_B.metric)
+    similarity = tanimoto_dict[(site_A.name, site_B.name)]+distance.euclidean(site_A.metric, site_B.metric)
     #similarity = distance.euclidean(site_A.metric, site_B.metric)
     return similarity
 
